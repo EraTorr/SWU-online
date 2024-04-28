@@ -12,6 +12,9 @@
 
     &.in-display {
       display: none;
+      position: absolute;
+      top: 0;
+      right: -100%;
     }
   }
 
@@ -32,4 +35,16 @@
         display: block;
     }
   }
+}
+.swu-card:hover + .in-display {
+    display: block;
+}
+
+.in-display {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    max-height: 400px;
+    max-width: 350px;
 }

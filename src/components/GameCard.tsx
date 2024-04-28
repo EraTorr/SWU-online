@@ -31,7 +31,9 @@ export const GameCard: Component<GameCardProps> = (props) => {
   const [following, setFollowing] = createSignal(false);
   const [showActionListAlpine, setShowActionListAlpine] = createSignal(false);
   const [visibleSide, setVisibleSide] = createSignal('back');
-  let element: HTMLElement;
+
+
+  let element: HTMLDivElement;
 
   const stopEvent = (event: any) => {
     event.stopImmediatePropagation();
@@ -105,47 +107,54 @@ export const GameCard: Component<GameCardProps> = (props) => {
     element.style.top = domRect.y + "px";
   }
 
-  return (
-    <div ref={element} class="swu-card" onClick={clickHandle}>
-      <img
-        class="in-game"
-        src={visibleSide() === 'back' ? merged.pathBack : merged.pathFront}
-        alt={merged.name}
-        draggable="false"
-      />
+  // element.style.top = merged.initPositionY + 'px';
+  // element.style.left = merged.initPositionX + 'px';
 
+  return (
+    <>
+      <div ref={element} class="swu-card" onClick={clickHandle}
+        style={'top:'+ merged.initPositionY +'px; left: '+merged.initPositionX+'px'}>
+        <img
+          class="in-game"
+          src={visibleSide() === 'back' ? merged.pathBack : merged.pathFront}
+          alt={merged.name}
+          draggable="false"
+        />
+
+
+
+        {merged.showActionList && (
+          <ul class="action-list" classList={{ visible: showActionListAlpine() }}>
+            <li onClick={flip}>
+                Flip
+            </li>
+            <li onClick={follow}>
+                Follow
+            </li>
+            <li onClick={() => moveTo('space')}>
+                Move to space
+            </li>
+            <li onClick={() => moveTo('ground')}>
+                Move to ground
+            </li>
+            <li onClick={() => moveTo('discard')}>
+                Move to discard
+            </li>
+            <li onClick={() => moveTo('hand')}>
+                Move to hand
+            </li>
+            <li onClick={() => moveTo('ressource')}>
+                Move to ressource
+            </li>
+          </ul>
+        )}
+      </div>
       <img
         class="in-display"
         src={visibleSide() === 'back' ? merged.pathBack : merged.pathFront}
         alt={merged.name}
         draggable="false"
       />
-
-      {merged.showActionList && (
-        <ul class="action-list" classList={{ visible: showActionListAlpine() }}>
-          <li onClick={flip}>
-              Flip
-          </li>
-          <li onClick={follow}>
-              Follow
-          </li>
-          <li onClick={() => moveTo('space')}>
-              Move to space
-          </li>
-          <li onClick={() => moveTo('ground')}>
-              Move to ground
-          </li>
-          <li onClick={() => moveTo('discard')}>
-              Move to discard
-          </li>
-          <li onClick={() => moveTo('hand')}>
-              Move to hand
-          </li>
-          <li onClick={() => moveTo('ressource')}>
-              Move to ressource
-          </li>
-        </ul>
-      )}
-    </div>
+    </>
   );
 };
