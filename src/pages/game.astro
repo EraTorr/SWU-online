@@ -1,0 +1,172 @@
+---
+import Layout from '../layouts/Layout.astro';
+import {GameCard} from '../components/GameCard.tsx';
+---
+
+<Layout title="SWU">
+    <main>
+		<GameCard client:load
+			name="check"
+			pathFront="https://d3alac64utt23z.cloudfront.net/images/cards/SOR/001.png"
+			pathBack="https://d3alac64utt23z.cloudfront.net/images/cards/SOR/001-b.png"
+			initPositionX={100}
+			initPositionY={100}
+		></GameCard>
+        <div class="top">
+            <div class="hand"></div>
+            <div class="board">
+                <div class="area-1">
+                    <div class="ressources"></div>
+                    <div class="deck"></div>
+                    <div class="discard"></div>
+                </div>
+                <div class="area-2">
+                    <div class="space"></div>
+                    <div class="middle">
+                        <div class="base"></div>
+                        <div class="leader"></div>
+                    </div>
+                    <div class="ground"></div>
+                </div>
+            </div>
+        </div>
+        <div class="bottom">
+            <div class="board">
+                <div class="area-2">
+                    <div class="space"></div>
+                    <div class="middle">
+                        <div class="leader"></div>
+                        <div class="base"></div>
+                    </div>
+                    <div class="ground"></div>
+                </div>
+                <div class="area-1">
+                    <div class="ressources"></div>
+                    <div class="deck"></div>
+                    <div class="discard"></div>
+                </div>
+            </div>
+            <div class="hand"></div>
+        </div>
+    </main>
+</Layout>
+
+<style lang="scss">
+	main {
+		margin: auto;
+		width: 1000px;
+		max-height: 100vh;
+		max-width: calc(100% - 2rem);
+		color: white;
+		font-size: 20px;
+		line-height: 1.6;
+		display: flex;
+		flex-direction: column;
+		gap: 2vh;
+	}
+
+	.text-gradient {
+		background-image: var(--accent-gradient);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-size: 400%;
+		background-position: 0%;
+	}
+
+	.top, .bottom {
+		background-color: white;
+		height: 49vh;
+		display: grid;
+
+		.hand {
+			background-color: #ffffff73;
+		}
+
+		.board {
+			background-color: #ffffff73;
+			display: grid;
+			grid-template-rows: 1fr 1fr 1fr;
+
+			.area-1 {
+				background-color: antiquewhite;
+			}
+
+			.area-2 {
+				background-color: rgb(250, 215, 239);
+				grid-row: 1 / 3;
+			}
+		}
+	}
+
+	.top {
+		grid-template-rows: 1fr 4fr;
+		background-color: cornflowerblue;
+
+		.hand {
+			grid-row: 1 / 2;
+			background-color: #ffffff73;
+		}
+
+		.board {
+			grid-row: 2 / 3;
+			background-color: #ffffff73;
+
+			.area-1 {
+				grid-row: 1 / 2;
+			}
+
+			.area-2 {
+				grid-row: 2 / 4;
+			}
+		}
+	}
+
+	.bottom {
+		grid-template-rows: 4fr 1fr;
+		background-color: lightsalmon;
+
+		.hand {
+			grid-row: 2 / 3;
+		}
+
+		.board {
+			grid-row: 1 / 2;
+		}
+	}
+
+	.area-1 {
+		display: grid;
+    	grid-template-columns: 5fr 1fr 1fr;
+		gap: 5px;
+
+		.ressources {}
+		.deck {}
+		.discard {}
+	}
+
+	.area-2 {
+		display: grid;
+    	grid-template-columns: 4fr 2fr 4fr;
+		gap: 5px;
+	
+		.space {
+			background-color: rgb(161, 171, 255);
+		}
+		.middle {
+			display: grid;
+			grid-template-rows: 1fr 1fr;
+			gap: 5px;
+
+			.leader {
+				background-color: rgb(255, 254, 201);
+			}
+
+			.base {
+				background-color: aliceblue;
+			}
+		}
+		.ground {
+			background-color: rgb(208, 255, 208);
+		}
+	}
+</style>

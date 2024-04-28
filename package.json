@@ -1,0 +1,28 @@
+{
+  "name": "swu",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "prettier": "prettier --write ."
+  },
+  "dependencies": {
+    "@astrojs/alpinejs": "^0.4.0",
+    "@astrojs/check": "^0.5.10",
+    "@astrojs/solid-js": "^4.1.0",
+    "@types/alpinejs": "^3.13.10",
+    "alpinejs": "^3.13.10",
+    "astro": "^4.7.0",
+    "sass": "^1.75.0",
+    "solid-js": "^1.8.17",
+    "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "prettier-plugin-astro": "^0.13.0"
+  }
+}
