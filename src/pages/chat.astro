@@ -1,0 +1,45 @@
+---
+import Layout from "../layouts/Layout.astro";
+import ChatController from "../controllers/chat";
+
+const messages = ChatController.getInstance().getMessages();
+---
+
+<Layout title="Chat Server">
+  <main>
+    <h1>Chat</h1>
+    <ul id="messages"  style="color: azure;">
+      {messages.map((message) => <li>{message}</li>)}
+    </ul>
+    <form id="chat">
+      <input id="message" type="text"/>
+      <button type="submit">Send</button>
+    </form>
+  </main>
+</Layout>
+
+<script is:inline>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById("chat");
+      const input = document.getElementById("message");
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        fetch("/api/chat", {
+          method: "POST",
+          body: JSON.stringify({ message: input.value }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        input.value = "";
+      });
+      const eventSource = new EventSource('/api/stream');
+      eventSource.onmessage = (event) => {
+        console.log(event);
+        const messages = document.getElementById('messages');
+        const li = document.createElement('li');
+        li.innerText = JSON.parse(event.data);
+        messages.appendChild(li);
+      };
+    });
+</script>

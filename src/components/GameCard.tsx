@@ -1,11 +1,11 @@
 import type { Component } from "solid-js";
-import { mergeProps, createSignal } from "solid-js";
+import { mergeProps, createSignal, For } from "solid-js";
 import "../style/GameCard.scss";
 
 interface GameCardProps {
   name: string;
   pathFront: string;
-  pathBack: string;
+  pathBack?: string;
   initPositionX?: number;
   initPositionY?: number;
   showActionList?: boolean;
@@ -18,7 +18,7 @@ export const GameCard: Component<GameCardProps> = (props) => {
     {
       name: "",
       pathFront: "",
-      pathBack: "",
+      pathBack: "card_back",
       initPositionX: 10,
       initPositionY: 10,
       showActionList: true,
@@ -31,10 +31,17 @@ export const GameCard: Component<GameCardProps> = (props) => {
   const [following, setFollowing] = createSignal(false);
   const [showActionListAlpine, setShowActionListAlpine] = createSignal(false);
   const [visibleSide, setVisibleSide] = createSignal('back');
-
+  const [left, setLeft] = createSignal(merged.initPositionX);
+  const [top, setTop] = createSignal(merged.initPositionY);
 
   let element: HTMLDivElement;
 
+const urlVisible = (display = false) => {
+    if (display && merged.pathBack === 'card_back' && merged.playerView === merged.owner) {
+      return 'https://ik.imagekit.io/nrqvxs6itqd/SWU/'+ merged.pathFront + '.png';
+    }
+    return 'https://ik.imagekit.io/nrqvxs6itqd/SWU/'+ (visibleSide() === 'back' ? merged.pathBack : merged.pathFront) + '.png';
+  }
   const stopEvent = (event: any) => {
     event.stopImmediatePropagation();
     event.stopPropagation();
@@ -60,8 +67,8 @@ export const GameCard: Component<GameCardProps> = (props) => {
     const { clientX, clientY } = event;
     const domRect = element.getBoundingClientRect();
 
-    element.style.left = -domRect.width / 2 + clientX + "px";
-    element.style.top = -domRect.height / 2 + clientY + "px";
+    setLeft(-domRect.width / 2 + clientX);
+    setTop(-domRect.height / 2 + clientY);
   };
   const flip = (event: any) => {
     stopEvent(event);
@@ -103,20 +110,37 @@ export const GameCard: Component<GameCardProps> = (props) => {
     }
     const targetElement = document.querySelectorAll(`.${side} .${target}`)[0];
     const domRect = targetElement.getBoundingClientRect()
-    element.style.left = domRect.x + "px";
-    element.style.top = domRect.y + "px";
+    setLeft(domRect.x);
+    setTop(domRect.y);
   }
 
-  // element.style.top = merged.initPositionY + 'px';
-  // element.style.left = merged.initPositionX + 'px';
+  const actionList = (cardType: string) => {
+    const action = [];
+
+    if (cardType) {
+      action.push(
+        [flip, 'Flip'],
+        [follow, 'Follow'],
+        [() => moveTo('space'), 'Move to space'],
+        [() => moveTo('ground'), 'Move to ground'],
+        [() => moveTo('discard'), 'Move to discard'],
+        [() => moveTo('hand'), 'Move to hand'],
+        [() => moveTo('ressource'), 'Move to ressource'],
+      );
+    }
+
+    return action;
+  }
+
+  actionList('tes');
 
   return (
     <>
-      <div ref={element} class="swu-card" onClick={clickHandle}
-        style={'top:'+ merged.initPositionY +'px; left: '+merged.initPositionX+'px'}>
+      <div ref={element} class="swu-card container" onClick={clickHandle}
+        style={'top:'+ top() +'px; left: '+ left()+'px'}>
         <img
           class="in-game"
-          src={visibleSide() === 'back' ? merged.pathBack : merged.pathFront}
+          src={	urlVisible() }
           alt={merged.name}
           draggable="false"
         />
@@ -125,33 +149,17 @@ export const GameCard: Component<GameCardProps> = (props) => {
 
         {merged.showActionList && (
           <ul class="action-list" classList={{ visible: showActionListAlpine() }}>
-            <li onClick={flip}>
-                Flip
-            </li>
-            <li onClick={follow}>
-                Follow
-            </li>
-            <li onClick={() => moveTo('space')}>
-                Move to space
-            </li>
-            <li onClick={() => moveTo('ground')}>
-                Move to ground
-            </li>
-            <li onClick={() => moveTo('discard')}>
-                Move to discard
-            </li>
-            <li onClick={() => moveTo('hand')}>
-                Move to hand
-            </li>
-            <li onClick={() => moveTo('ressource')}>
-                Move to ressource
-            </li>
+            <For each={actionList('test')}>{(action) =>
+              <li onClick={action[0]}>
+                  {action[1]}
+              </li>
+            }</For>
           </ul>
         )}
       </div>
       <img
-        class="in-display"
-        src={visibleSide() === 'back' ? merged.pathBack : merged.pathFront}
+        class="swu-card in-display"
+        src={urlVisible(true)}
         alt={merged.name}
         draggable="false"
       />

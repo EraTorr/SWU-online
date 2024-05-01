@@ -1,0 +1,60 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="SWU">
+    <div class="home" x-data="pregame()">
+        <div class="title">
+            Hello, to play please copy a deck from <a href="https://swudb.com">swudb.com</a> in json format
+        </div>
+        <textarea name="deck" id="deck"></textarea>
+        <button type="button" @click="saveDeckInLocalStorage">Save deck locally (allow cookies)</button>
+
+        <a href="matchmaking" x-show="showMatchMakingButton" x-cloak>Search game</button>
+    </div>
+</Layout>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('pregame', () => ({
+            showMatchMakingButton: false,
+            
+            init() {
+                this.showMatchMakingButton = !!localStorage.getItem('deck');
+            },
+            async saveDeckInLocalStorage() { 
+                const deck = document.getElementById('deck').value;
+                const response = await fetch('/api/deck-validate', {
+                    method: 'POST',
+                    body: deck,
+                    headers: {
+                    'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.status === 200) {
+                    localStorage.setItem('deck', deck);
+                    this.showMatchMakingButton = true;
+                }
+            },
+        }))
+    })
+</script>
+
+<style lang="scss">
+.home {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 500px;
+
+    textarea {
+        height: 300px;
+    }
+
+    .title, a {
+        color: aliceblue;
+    }
+}
+[x-cloak] { display: none !important; }
+</style>

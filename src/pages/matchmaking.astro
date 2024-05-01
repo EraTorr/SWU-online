@@ -1,0 +1,70 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="SWU">
+    <div class="home">
+        <div class="title">
+            Looking for an opponent...
+        </div>
+    </div>
+</Layout>
+
+<style lang="scss">
+.home {
+    .title {
+        color: aliceblue;
+        font-size: 24px;
+    }
+}
+</style>
+
+<script is:inline>
+    let myuuid = localStorage.getItem('myuuid');
+    if (!myuuid) {
+        myuuid = crypto.randomUUID();
+        localStorage.setItem('myuuid', myuuid)
+    }
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        // fetch("/api/matchmaking", {
+        //   method: "POST",
+        //   body: JSON.stringify({ uuid: myuuid }),
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        // });
+        response = await fetch("/api/matchmaking", {
+          method: "POST",
+          body: JSON.stringify({ uuid: myuuid }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        console.log(response);
+        if (response.status === 200) {
+            console.log(response.status);
+
+            return;
+        }
+
+        const eventSource = new EventSource('/api/matchmaking-sub');
+        console.log(eventSource);
+        eventSource.addEventListener("start-game", (event) => {
+            console.log("found-match-" + myuuid, event);
+        });
+    });
+
+    // console.log(window.URL());
+    window.addEventListener("unload", function(e){
+        console.log('unload')
+        fetch("/api/matchmaking?uuid="+uuid, {
+          method: "DELETE",
+          keepalive: true
+        });
+        // 
+    });
+    
+
+</script>

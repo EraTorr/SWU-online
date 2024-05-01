@@ -7,19 +7,24 @@ import {GameCard} from '../components/GameCard.tsx';
     <main>
 		<GameCard client:load
 			name="check"
-			pathFront="https://d3alac64utt23z.cloudfront.net/images/cards/SOR/001.png"
-			pathBack="https://d3alac64utt23z.cloudfront.net/images/cards/SOR/001-b.png"
+			pathFront="SOR/001"
+			pathBack="SOR/001-b"
 			initPositionX={100}
 			initPositionY={100}
 		></GameCard>
-
 		<GameCard client:load
-		name="check"
-		pathFront="https://d3alac64utt23z.cloudfront.net/images/cards/SOR/002.png"
-		pathBack="https://d3alac64utt23z.cloudfront.net/images/cards/SOR/002-b.png"
-		initPositionX={500}
-		initPositionY={500}
-	></GameCard>
+			name="check"
+			pathFront="SOR/002"
+			pathBack="SOR/002-b"
+			initPositionX={500}
+			initPositionY={500}
+		></GameCard>
+		<GameCard client:load
+			name="check"
+			pathFront="SOR/052"
+			initPositionX={200}
+			initPositionY={200}
+		></GameCard>
         <div class="top">
             <div class="hand"></div>
             <div class="board">

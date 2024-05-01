@@ -1,26 +1,30 @@
-.swu-card {
+.swu-card.container {
   position: absolute;
   cursor: pointer;
 
   &.selected {
+    > img.in-game {
     box-shadow: 0px 0px 5px 5px red;
+    }
   }
 
   > img {
     max-width: 100px;
     max-height: 100px;
+    border-radius: 3px;
+    display: block;
 
     &.in-display {
       display: none;
       position: absolute;
       top: 0;
       right: -100%;
+      border-radius: 15px;
     }
   }
 
   &:hover {
     > img.in-display {
-      display: block;
       max-width: none;
       max-height: none;
     }
@@ -36,15 +40,16 @@
     }
   }
 }
-.swu-card:hover + .in-display {
+.swu-card.container:hover + .in-display {
     display: block;
 }
 
-.in-display {
+.swu-card.in-display {
+    border-radius: 15px;
     display: none;
     position: absolute;
     top: 10px;
     right: 10px;
-    max-height: 400px;
-    max-width: 350px;
+    max-height: 500px;
+    max-width: 500px;
 }
