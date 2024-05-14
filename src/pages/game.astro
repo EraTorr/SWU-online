@@ -183,3 +183,57 @@ import {GameCard} from '../components/GameCard.tsx';
 		}
 	}
 </style>
+
+
+<script is:inline>
+    if (!localStorage.getItem('deck') || !sessionStorage.getItem('game')) window.location.replace('pre-game')
+	
+	const gameId = JSON.parse(sessionStorage.getItem('game')).gameId
+	const myuuid = localStorage.getItem('myuuid');
+	
+	// socket = new WebSocket("ws://localhost:8080");
+
+
+	let socket = null;
+	document.addEventListener('DOMContentLoaded', async () => {
+
+		response = await fetch("/api/game-connect", {
+			method: "POST",
+			body: JSON.stringify({ game: sessionStorage.getItem('game'), uuid: localStorage.getItem('myuuid'), deck: localStorage.getItem('deck') }),
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+
+		if (response.status === 400) {
+			window.location.replace('pre-game');
+		}
+
+		// Create WebSocket connection.
+		socket = new WebSocket("ws://localhost:8080/");
+		// Connection opened
+		socket.addEventListener("open", (event) => {
+			// send deck
+			const deckParsed = localStorage.getItem('deck');
+			socket.send(JSON.stringify({ action: 'acknowledge', data: { uuid: myuuid , gameId: gameId } }));
+			socket.send(JSON.stringify({ action: 'sendDeck', data: { gameId: gameId, uuid: myuuid, deck: deckParsed } }));
+		});
+
+		// Listen for messages
+		socket.addEventListener("message", (event) => {
+			console.log("Message from server ", event);
+		});	
+
+		document.addEventListener("sendMessage", (event) => {
+			console.log('sendMessage', event.detail)
+			socket.send(JSON.stringify( event.detail ));
+		});
+
+		socket.addEventListener("error", (event) => {
+			window.location.replace('pre-game')
+		});
+		// window.onbeforeunload = () => {
+		// 	fetch("/api/close-ws", {method: "GET"})
+		// }
+	});
+</script>

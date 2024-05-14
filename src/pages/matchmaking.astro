@@ -20,6 +20,7 @@ import Layout from '../layouts/Layout.astro';
 </style>
 
 <script is:inline>
+    if (!localStorage.getItem('deck')) window.location.replace('pre-game')
     let myuuid = localStorage.getItem('myuuid');
     if (!myuuid) {
         myuuid = crypto.randomUUID();
@@ -27,13 +28,6 @@ import Layout from '../layouts/Layout.astro';
     }
     
     document.addEventListener('DOMContentLoaded', async () => {
-        // fetch("/api/matchmaking", {
-        //   method: "POST",
-        //   body: JSON.stringify({ uuid: myuuid }),
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //   },
-        // });
         response = await fetch("/api/matchmaking", {
           method: "POST",
           body: JSON.stringify({ uuid: myuuid }),
@@ -44,22 +38,27 @@ import Layout from '../layouts/Layout.astro';
 
         console.log(response);
         if (response.status === 200) {
-            console.log(response.status);
-
+            const gameData = await response.json();
+            console.log(gameData);
+            sessionStorage.setItem('game', JSON.stringify(gameData));
+            window.location.replace('/game');
             return;
         }
 
         const eventSource = new EventSource('/api/matchmaking-sub');
         console.log(eventSource);
-        eventSource.addEventListener("start-game", (event) => {
-            console.log("found-match-" + myuuid, event);
-        });
+        eventSource.onmessage = async (event) => {
+            console.log("found-match-" + myuuid);
+            sessionStorage.setItem('game', event.data);
+            window.location.replace('/game');
+        };
     });
 
     // console.log(window.URL());
     window.addEventListener("unload", function(e){
+        if (!localStorage.getItem('deck')) return;
         console.log('unload')
-        fetch("/api/matchmaking?uuid="+uuid, {
+        fetch("/api/matchmaking?uuid="+myuuid, {
           method: "DELETE",
           keepalive: true
         });

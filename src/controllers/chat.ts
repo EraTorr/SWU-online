@@ -1,8 +1,8 @@
-import EventEmitter from 'events';
-
 export default class ChatController {
     private static instance: ChatController;
     private constructor() {}
+
+    public controllers = new Set();
   
     static getInstance(): ChatController {
       if (!ChatController.instance) {
@@ -11,23 +11,17 @@ export default class ChatController {
       return ChatController.instance;
     }
 
-    private messages: string[] = [];
+    private history: string[] = [];
 
     public getMessages(): string[] {
-        return this.messages;
-    }
-    private emitter = new EventEmitter();
-
-    public subscribe(callback: (message: string) => void): void {
-        this.emitter.on('message', callback);
+        return this.history;
     }
 
-    public unsubscribe(callback: (message: string) => void): void {
-        this.emitter.off('message', callback);
-    }
+    public addMessage(data: any): void {
+        this.history.push(data);
+        const encoder = new TextEncoder();
+        const message = encoder.encode(`data: ${JSON.stringify(data)}\n\n`);
 
-    public addMessage(message: string): void {
-        this.messages.push(message);
-        this.emitter.emit('message', message);
+        this.controllers.forEach((controller) => controller.enqueue(message));
     }
   }

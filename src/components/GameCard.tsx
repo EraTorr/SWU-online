@@ -78,6 +78,9 @@ const urlVisible = (display = false) => {
     if (showActionListAlpine()) {
       toggleActionList();
     }
+    console.log('fl;ip');
+    const e = new CustomEvent("sendMessage", { detail: {action: 'flip', data: 'test'}});
+    document.dispatchEvent(e);
   };
   const toggleActionList = () => {
     setShowActionListAlpine(!showActionListAlpine());
@@ -131,8 +134,6 @@ const urlVisible = (display = false) => {
 
     return action;
   }
-
-  actionList('tes');
 
   return (
     <>

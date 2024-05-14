@@ -1,26 +1,18 @@
 import type { APIRoute } from 'astro';
 import ChatController from '../../controllers/chat';
 
+
 export const GET: APIRoute = async ({ request }) => {
+  let controller: ReadableStreamDefaultController<any>;
   const body = new ReadableStream({
-    start(controller) {
-      const encoder = new TextEncoder();
-
-      const sendEvent = (data: any) => {
-        const message = `data: ${JSON.stringify(data)}\n\n`;
-        controller.enqueue(encoder.encode(message));
-      };
-
-      // Subscribe to new messages
-      ChatController.getInstance().subscribe(sendEvent);
-
-      request.signal.addEventListener('abort', () => {
-        // Unsubscribe from new messages
-        ChatController.getInstance().unsubscribe(sendEvent);
-        controller.close();
-      });
-    }
-  });
+    start(c) {
+      controller = c;
+      ChatController.getInstance().controllers.add(controller);
+    },
+    cancel() {
+      ChatController.getInstance().controllers.delete(controller);
+    },
+  })
 
   return new Response(body, {
     headers: {

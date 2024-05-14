@@ -39,7 +39,17 @@ const messages = ChatController.getInstance().getMessages();
         const messages = document.getElementById('messages');
         const li = document.createElement('li');
         li.innerText = JSON.parse(event.data);
+        console.log(JSON.parse(event.data));
         messages.appendChild(li);
       };
+      eventSource.onerror = () => {
+        console.log('rerere')
+        eventSource.close();
+      };
+      window.onbeforeunload = () => {
+        console.log('rsdaerere')
+        // close gracefully
+        eventSource.close();
+      }
     });
 </script>

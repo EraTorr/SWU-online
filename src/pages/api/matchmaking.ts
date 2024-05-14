@@ -5,38 +5,45 @@ import { redis } from '../../valkey/server';
 export const prerender = false;
 export const POST: APIRoute = async ({ request }) => {
     const { uuid } = await request.json();
-    (async () => {
-        try {            
-            const opponentFound = await getOpponent(uuid);
+    try {
+        const opponentFound = await getOpponent(uuid);
 
-            if (opponentFound) {
-                console.log('opponentFound', opponentFound);
-                const game = MatchMakingController.getInstance().createGame(uuid, opponentFound);
-                new Response(JSON.stringify(game), { status: 200 });
-            }
-            
-            const randNumber = Math.floor(Math.random() * 5) + 1;
-            const response = await redis.zadd(
-                "matchmaking",
-                { nx: true },
-                { score: randNumber, member: uuid }
-            );
-            console.log('redis.zadd', response);
-        } catch (error) {
-          console.error(error);
+        if (opponentFound) {
+            console.log('opponentFound', opponentFound);
+            const game = MatchMakingController.getInstance().createGame(uuid, opponentFound);
+            return new Response(JSON.stringify(game), { status: 200 });
         }
-      })();
+        
+        const randNumber = Math.floor(Math.random() * 5) + 1;
+        await redis.zadd(
+            "matchmaking",
+            { nx: true },
+            { score: randNumber, member: uuid }
+        );
+    } catch (error) {
+        console.error(error);
+    }
 
     return new Response(null, { status: 204 });
 };
 
 const getOpponent = async (uuidP1: string) => {
-    const randNumber = Array.from(
-        { length: 5 },
-        () => Math.floor(Math.random() * (5 - 1 + 1)) + 1
-    );
+    let array = [1, 2, 3, 4, 5];
+    let currentIndex = array.length;
+
+    // While there remain elements to shuffle...
+    while (currentIndex != 0) {
+      // Pick a remaining element...
+      let randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+  
+      // And swap it with the current element.
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex], array[currentIndex]];
+    }
+
     let uuidP2: string | null = null;
-    for(const number of randNumber) {
+    for(const number of array) {
         const res: Array<string> = await redis.zrange("matchmaking", number - 1, number + 1);
         const filtered = res.filter(uuid => uuid !== uuidP1);
         if (filtered.length === 0) continue;
@@ -56,7 +63,7 @@ const getOpponent = async (uuidP1: string) => {
 
 export const DELETE: APIRoute = async ({ request }) => {
     const uuid = request.url.split('?').pop()?.split('&').filter(param => param.includes('uuid='))[0]?.split('=').pop();
-    console.log('delete', uuid);
+
     if (uuid === undefined) {
         return new Response(null, { status: 404 });
     }
