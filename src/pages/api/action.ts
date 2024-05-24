@@ -1,10 +1,13 @@
 import type { APIRoute } from 'astro';
-import WebsocketController from '../../controllers/websocket';
+import { handleAction } from '../../controllers/websocket';
+export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
-    // const body = await request.json();
+    if (request.headers.get("Content-Type") === "application/json") {
+        const body = await request.json();
+        
+        handleAction(body.action, body.data, null);
+    }
 
-    console.log('r', request.body)
-    // handleAction()
     return new Response(null, { status: 204 });
 };

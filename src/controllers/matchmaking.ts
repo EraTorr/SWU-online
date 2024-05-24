@@ -24,7 +24,7 @@ export default class MatchMakingController {
     //     hands: {},
     //     resources: {},
     //     grounds: {},
-    //     space: {},
+    //     spaces: {},
     //     leaders: {},
     //     bases: {},
     // };
@@ -41,7 +41,7 @@ export default class MatchMakingController {
             hands: {},
             resources: {},
             grounds: {},
-            space: {},
+            spaces: {},
             leaders: {},
             bases: {},
         };

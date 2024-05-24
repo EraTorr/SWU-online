@@ -1,5 +1,5 @@
-import { WebSocketServer } from 'ws';
-import { getGame, setGame, startPhase } from './game';
+import { WebSocket, WebSocketServer } from 'ws';
+import { getGame, reconnect, setGame, startPhase, type Game } from './game';
 import { shuffleDeck } from './deck';
 
 export default class WebsocketController {
@@ -9,7 +9,6 @@ export default class WebsocketController {
     static getInstance(): WebSocketServer {
         if (!WebsocketController.server) {
             try {
-                console.log(WebsocketController.server)
                 WebsocketController.server = new WebSocketServer({ port: 8080 });
             } catch (e) {
                 console.log(e);
@@ -26,26 +25,48 @@ export default class WebsocketController {
 
                 });
             
-                ws.send('Connected');
+                ws.send(JSON.stringify({response:'Connected'}));
             });
         }
         return WebsocketController.server;
     }
 }
 
-const handleAction = async (action, data, ws) => {
+export const handleAction = async (action, data, ws: null) => {
     console.log(action)
+
+    let game: Game|null = null;
 
     switch (action) {
         case 'acknowledge':
             WebsocketController.connections.set(data.uuid, ws);
+            game = getGame(data.gameId);
+            if (!game) break;
+
+            const allConnected = [...WebsocketController.connections.keys()].filter(uuid => [game.p1, game.p2].includes(uuid)).length === 2;
+            if (game.decks.p1 && game.decks.p2) {
+                console.log('reconnect', data.uuid)
+                if (game.p1 === data.uuid) {
+                    const dataP1 = {action: 'reconnect'};
+                    sendWS(game, dataP1, null)
+                } else {
+                    const dataP2 = {action: 'reconnect'};
+                    sendWS(game, null, dataP2)
+                }
+                break;
+            } 
+            if (allConnected) {
+                const dataP1 = {action: 'sendDeck'};
+                const dataP2 = {action: 'sendDeck'};
+                sendWS(game, dataP1, dataP2)
+            }
             break;
         case 'sendDeck':
-            const game = getGame(data.gameId);
+            game = getGame(data.gameId);
 
             if (!game) break;
 
-            const deck = await JSON.parse(data.deck)
+            const deck = data.deck;
             const deckCard: Array<string> = [];
 
             deck.deck.forEach(card => {
@@ -119,5 +140,21 @@ const handleAction = async (action, data, ws) => {
                 startPhase(updatedGame.gameId);
             }
             break;
+        case 'reconnect':
+            reconnect(data.gameId, data.uuid)
+            break;
     }
+}
+
+export const sendWS = (game, dataP1, dataP2) => {
+    let responseP1 = null;
+    let responseP2 = null;
+    if (dataP1) responseP1 = JSON.stringify({uuids: [game.p1], data: dataP1});
+    if (dataP2) responseP2 = JSON.stringify({uuids: [game.p2], data: dataP2});
+    const socket = new WebSocket("ws://localhost:8080/");
+    socket.addEventListener("open", () => {
+      if (responseP1) socket.send(responseP1);
+      if (responseP2) socket.send(responseP2);
+      socket.close();
+    });
 }

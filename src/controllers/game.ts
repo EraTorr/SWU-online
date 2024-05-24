@@ -1,6 +1,6 @@
 import type { Card } from "./card";
 import { draw } from "./deck";
-import WebsocketController from "./websocket";
+import { sendWS } from "./websocket";
 
 export type Game = {
   gameId: string;
@@ -40,7 +40,7 @@ export type Game = {
       cards: Array<Card>,
     },
   };
-  space: {
+  spaces: {
     p1?: {
       cards: Array<Card>,
     },
@@ -99,9 +99,7 @@ export const getGame = (gameId: string): Game | null => {
 }
 
 export const setGame = (game: Game): void => {
-  console.log('setGame',game.gameId, game);
   GameController.getInstance().setGame(game.gameId, game);
-  console.log('getGame', getGame(game.gameId));
 }
 
 export const startPhase = (gameId: string) => {
@@ -134,7 +132,57 @@ export const startPhase = (gameId: string) => {
   setGame(updatedGame);
   const decksCount =  {p1: drawResultP1.deck.length, p2: drawResultP2.deck.length};
   const handsCount =  {p1: 6, p2: 6};
-  WebsocketController.connections.get(game.p1).send(JSON.stringify({step: 'startGame', decksCount, handsCount, handP1: drawResultP1.hand}));
-  WebsocketController.connections.get(game.p2).send(JSON.stringify({step: 'startGame', decksCount, handsCount, handP2: drawResultP2.hand}));
+  const leaders = {p1: game.leaders.p1?.id, p2: game.leaders.p2?.id};
+  const bases = {p1: game.bases.p1?.id, p2: game.bases.p2?.id};
 
+  const dataP1 = {step: 'startGame', decksCount, handsCount, handP1: drawResultP1.hand, leaders, bases};
+  const dataP2 = {step: 'startGame', decksCount, handsCount, handP2: drawResultP2.hand, leaders, bases};
+
+  sendWS(game, dataP1, dataP2);
+}
+
+export const reconnect = (gameId: string, playerUuid: string) => {
+  const game = getGame(gameId) as Game;
+
+  const decksCount =  {p1: game.decks.p1?.playDeck?.length ?? 0, p2: game.decks.p2?.playDeck?.length ?? 0};
+  const handsCount =  {p1: game.hands.p1?.cards?.length ?? 0, p2: game.hands.p2?.cards?.length ?? 0};
+  const leaders = {p1: game.leaders.p1?.id, p2: game.leaders.p2?.id};
+  const bases = {p1: game.bases.p1?.id, p2: game.bases.p2?.id};
+  const grounds = {p1: game.grounds.p1?.cards, p2: game.grounds.p2?.cards};
+  const spaces = {p1: game.spaces.p1?.cards, p2: game.spaces.p2?.cards};
+  const resourcesCount = {p1: game.resources.p1?.cards.length, p2: game.resources.p2?.cards.length};
+
+  if (game.p1 === playerUuid) {
+    const dataP1 = {
+      step: 'startGame',
+      decksCount,
+      handsCount, 
+      handP1: game.hands.p1?.cards ?? [],
+      leaders,
+      bases,
+      resourcesP1: game.resources.p1?.cards ?? [],
+      resourcesCount,
+      grounds,
+      spaces,
+
+    };
+
+    sendWS(game, dataP1, null);
+  } else {
+    const dataP2 = {
+      step: 'startGame',
+      decksCount,
+      handsCount, 
+      handP2: game.hands.p2?.cards ?? [],
+      leaders,
+      bases,
+      resourcesP1: game.resources.p1?.cards ?? [],
+      resourcesCount,
+      grounds,
+      spaces,
+      
+    };
+
+    sendWS(game, null, dataP2);
+  }
 }

@@ -1,17 +1,19 @@
 import type { APIRoute } from 'astro';
 import MatchMakingController from '../../controllers/matchmaking';
 import { redis } from '../../valkey/server';
+import { v4 as uuidv4 } from 'uuid';
 
 export const prerender = false;
 export const POST: APIRoute = async ({ request }) => {
-    const { uuid } = await request.json();
+    let { uuid } = await request.json();
     try {
         const opponentFound = await getOpponent(uuid);
 
+        uuid = uuid instanceof String ? uuid : uuidv4();
         if (opponentFound) {
             console.log('opponentFound', opponentFound);
             const game = MatchMakingController.getInstance().createGame(uuid, opponentFound);
-            return new Response(JSON.stringify(game), { status: 200 });
+            return new Response(JSON.stringify({uuid, game}), { status: 200 });
         }
         
         const randNumber = Math.floor(Math.random() * 5) + 1;
@@ -24,7 +26,7 @@ export const POST: APIRoute = async ({ request }) => {
         console.error(error);
     }
 
-    return new Response(null, { status: 204 });
+    return new Response(JSON.stringify({uuid}), { status: 200 });
 };
 
 const getOpponent = async (uuidP1: string) => {

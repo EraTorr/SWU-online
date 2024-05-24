@@ -9,13 +9,9 @@ export const POST: APIRoute = async ({ request }) => {
   const deck = await JSON.parse(body.deck);
   const game = await JSON.parse(body.game);
 
-  console.log(player, deck)
-  console.log(game);
-
   if (!getGame(game.gameId)) {
     return new Response(null, { status: 400 });
   }
-  console.log(getGame(game.gameId));
 
   return new Response(null, { status: 204 });
 };

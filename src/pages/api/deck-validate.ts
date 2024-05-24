@@ -34,6 +34,6 @@ const validateDeck = (deck: Array<{id: string, count: number}>): boolean => {
         totalCardCount += card.count ?? 0;
         return !(validateCardId(card.id) && card.count !== undefined)
     });
-    console.log(totalCardCount, errorCards, errorCards.length === 0 && totalCardCount >= 60);
-    return errorCards.length === 0 && totalCardCount >= 60;
+    console.log(totalCardCount, errorCards, errorCards.length === 0 && totalCardCount >= 50);
+    return errorCards.length === 0 && totalCardCount >= 50;
 }

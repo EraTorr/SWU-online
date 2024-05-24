@@ -190,9 +190,6 @@ import {GameCard} from '../components/GameCard.tsx';
 	
 	const gameId = JSON.parse(sessionStorage.getItem('game')).gameId
 	const myuuid = localStorage.getItem('myuuid');
-	
-	// socket = new WebSocket("ws://localhost:8080");
-
 
 	let socket = null;
 	document.addEventListener('DOMContentLoaded', async () => {
@@ -210,18 +207,26 @@ import {GameCard} from '../components/GameCard.tsx';
 		}
 
 		// Create WebSocket connection.
-		socket = new WebSocket("ws://localhost:8080/");
+		socket = new WebSocket("ws://" + window.location.hostname + ":8080/");
 		// Connection opened
 		socket.addEventListener("open", (event) => {
-			// send deck
-			const deckParsed = localStorage.getItem('deck');
 			socket.send(JSON.stringify({ action: 'acknowledge', data: { uuid: myuuid , gameId: gameId } }));
-			socket.send(JSON.stringify({ action: 'sendDeck', data: { gameId: gameId, uuid: myuuid, deck: deckParsed } }));
 		});
 
 		// Listen for messages
-		socket.addEventListener("message", (event) => {
-			console.log("Message from server ", event);
+		socket.addEventListener("message", async (event) => {
+			const data = await JSON.parse(event.data)
+
+			console.log('message', data);
+			if (data.response) {
+			} else {
+				if (data.action && data.action === 'sendDeck') {
+					// send deck
+					const deckParsed = JSON.parse(localStorage.getItem('deck'));
+					socket.send(JSON.stringify({ action: 'sendDeck', data: { gameId: gameId, uuid: myuuid, deck: deckParsed } }));
+
+				}
+			}
 		});	
 
 		document.addEventListener("sendMessage", (event) => {
@@ -230,6 +235,7 @@ import {GameCard} from '../components/GameCard.tsx';
 		});
 
 		socket.addEventListener("error", (event) => {
+			console.log(event)
 			window.location.replace('pre-game')
 		});
 		// window.onbeforeunload = () => {
