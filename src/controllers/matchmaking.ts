@@ -1,5 +1,3 @@
-import EventEmitter from 'events';
-import { redis } from '../valkey/server';
 import { v4 as uuidv4 } from 'uuid';
 import { setGame } from './game';
 

@@ -1,9 +1,12 @@
 import type { Component } from "solid-js";
-import { mergeProps, createSignal, For } from "solid-js";
-import "../style/GameCard.scss";
+import { mergeProps, createSignal, For, onMount, Show } from "solid-js";
+import "../style/game-card.scss";
+import type { Card } from "../helpers/card";
+import { stopEvent } from "../helpers/app.helper";
 
 interface GameCardProps {
   name: string;
+  cardData: Card,
   pathFront: string;
   pathBack?: string;
   initPositionX?: number;
@@ -11,6 +14,8 @@ interface GameCardProps {
   showActionList?: boolean;
   owner?: number;
   playerView?: number;
+  openActions: (data: any) => void;
+  area?: string;
 }
 
 export const GameCard: Component<GameCardProps> = (props) => {
@@ -23,30 +28,34 @@ export const GameCard: Component<GameCardProps> = (props) => {
       initPositionY: 10,
       showActionList: true,
       owner: 1, // 2
-      playerView: 1 // 2
+      playerView: 1, // 2
     },
     props,
   );
 
   const [following, setFollowing] = createSignal(false);
   const [showActionListAlpine, setShowActionListAlpine] = createSignal(false);
-  const [visibleSide, setVisibleSide] = createSignal('back');
+  const [visibleSide, setVisibleSide] = createSignal('front');
   const [left, setLeft] = createSignal(merged.initPositionX);
   const [top, setTop] = createSignal(merged.initPositionY);
 
-  let element: HTMLDivElement;
+  let element!: HTMLDivElement;
+  // onMount(() => {
+  //   if (merged.cardData.type === 'Leader') {
+  //     setVisibleSide('front')
+  //   }
+  // })
 
-const urlVisible = (display = false) => {
+  const urlVisible = (display = false) => {
     if (display && merged.pathBack === 'card_back' && merged.playerView === merged.owner) {
+      return 'https://ik.imagekit.io/nrqvxs6itqd/SWU/'+ merged.pathFront + '.png';
+    }
+    if (merged.cardData.type === 'Base') {
       return 'https://ik.imagekit.io/nrqvxs6itqd/SWU/'+ merged.pathFront + '.png';
     }
     return 'https://ik.imagekit.io/nrqvxs6itqd/SWU/'+ (visibleSide() === 'back' ? merged.pathBack : merged.pathFront) + '.png';
   }
-  const stopEvent = (event: any) => {
-    event.stopImmediatePropagation();
-    event.stopPropagation();
-    event.preventDefault();
-  };
+
   const follow = (event: any) => {
     stopEvent(event);
 
@@ -96,44 +105,9 @@ const urlVisible = (display = false) => {
       return;
     }
 
-    toggleActionList();
+    merged.openActions({type: 'test', card: merged.name});
   };
-  const clickOutsideHandle = () => {
-    if (showActionListAlpine()) {
-      toggleActionList();
-    }
-  };
-  const moveTo = (target: string) => {
-    console.log('test', target);
-    let side = 'bottom';
-    if (merged.playerView === 1) {
-      side = merged.owner === 1 ? 'bottom': 'top';
-    } else {
-      side = merged.owner === 1 ? 'top': 'bottom';
-    }
-    const targetElement = document.querySelectorAll(`.${side} .${target}`)[0];
-    const domRect = targetElement.getBoundingClientRect()
-    setLeft(domRect.x);
-    setTop(domRect.y);
-  }
 
-  const actionList = (cardType: string) => {
-    const action = [];
-
-    if (cardType) {
-      action.push(
-        [flip, 'Flip'],
-        [follow, 'Follow'],
-        [() => moveTo('space'), 'Move to space'],
-        [() => moveTo('ground'), 'Move to ground'],
-        [() => moveTo('discard'), 'Move to discard'],
-        [() => moveTo('hand'), 'Move to hand'],
-        [() => moveTo('ressource'), 'Move to ressource'],
-      );
-    }
-
-    return action;
-  }
 
   return (
     <>
@@ -145,25 +119,15 @@ const urlVisible = (display = false) => {
           alt={merged.name}
           draggable="false"
         />
-
-
-
-        {merged.showActionList && (
-          <ul class="action-list" classList={{ visible: showActionListAlpine() }}>
-            <For each={actionList('test')}>{(action) =>
-              <li onClick={action[0]}>
-                  {action[1]}
-              </li>
-            }</For>
-          </ul>
-        )}
       </div>
-      <img
-        class="swu-card in-display"
-        src={urlVisible(true)}
-        alt={merged.name}
-        draggable="false"
-      />
+      <Show when={merged.cardData.id !== '0'}>
+        <img
+          class="swu-card in-display"
+          src={urlVisible(true)}
+          alt={merged.name}
+          draggable="false"
+        />
+      </Show>
     </>
   );
 };

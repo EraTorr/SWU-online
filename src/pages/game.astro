@@ -1,245 +1,30 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import {GameCard} from '../components/GameCard.tsx';
+import {Game as G} from '../components/Game.tsx';
 ---
 
 <Layout title="SWU">
     <main>
-		<GameCard client:load
-			name="check"
-			pathFront="SOR/001"
-			pathBack="SOR/001-b"
-			initPositionX={100}
-			initPositionY={100}
-		></GameCard>
-		<GameCard client:load
-			name="check"
-			pathFront="SOR/002"
-			pathBack="SOR/002-b"
-			initPositionX={500}
-			initPositionY={500}
-		></GameCard>
-		<GameCard client:load
-			name="check"
-			pathFront="SOR/052"
-			initPositionX={200}
-			initPositionY={200}
-		></GameCard>
-        <div class="top">
-            <div class="hand"></div>
-            <div class="board">
-                <div class="area-1">
-                    <div class="ressources"></div>
-                    <div class="deck"></div>
-                    <div class="discard"></div>
-                </div>
-                <div class="area-2">
-                    <div class="space"></div>
-                    <div class="middle">
-                        <div class="base"></div>
-                        <div class="leader"></div>
-                    </div>
-                    <div class="ground"></div>
-                </div>
-            </div>
-        </div>
-        <div class="bottom">
-            <div class="board">
-                <div class="area-2">
-                    <div class="space"></div>
-                    <div class="middle">
-                        <div class="leader"></div>
-                        <div class="base"></div>
-                    </div>
-                    <div class="ground"></div>
-                </div>
-                <div class="area-1">
-                    <div class="ressources"></div>
-                    <div class="deck"></div>
-                    <div class="discard"></div>
-                </div>
-            </div>
-            <div class="hand"></div>
-        </div>
+		<G client:load
+		></G>
     </main>
 </Layout>
 
 <style lang="scss">
+	body {
+		overflow:  hidden;
+	}
 	main {
 		margin: auto;
 		width: 1000px;
-		max-height: 100vh;
-		max-width: calc(100% - 2rem);
+		height: 820px;
 		color: white;
 		font-size: 20px;
 		line-height: 1.6;
-		display: flex;
-		flex-direction: column;
-		gap: 2vh;
-	}
-
-	.text-gradient {
-		background-image: var(--accent-gradient);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-size: 400%;
-		background-position: 0%;
-	}
-
-	.top, .bottom {
-		background-color: white;
-		height: 49vh;
-		display: grid;
-
-		.hand {
-			background-color: #ffffff73;
-		}
-
-		.board {
-			background-color: #ffffff73;
-			display: grid;
-			grid-template-rows: 1fr 1fr 1fr;
-
-			.area-1 {
-				background-color: antiquewhite;
-			}
-
-			.area-2 {
-				background-color: rgb(250, 215, 239);
-				grid-row: 1 / 3;
-			}
-		}
-	}
-
-	.top {
-		grid-template-rows: 1fr 4fr;
-		background-color: cornflowerblue;
-
-		.hand {
-			grid-row: 1 / 2;
-			background-color: #ffffff73;
-		}
-
-		.board {
-			grid-row: 2 / 3;
-			background-color: #ffffff73;
-
-			.area-1 {
-				grid-row: 1 / 2;
-			}
-
-			.area-2 {
-				grid-row: 2 / 4;
-			}
-		}
-	}
-
-	.bottom {
-		grid-template-rows: 4fr 1fr;
-		background-color: lightsalmon;
-
-		.hand {
-			grid-row: 2 / 3;
-		}
-
-		.board {
-			grid-row: 1 / 2;
-		}
-	}
-
-	.area-1 {
-		display: grid;
-    	grid-template-columns: 5fr 1fr 1fr;
-		gap: 5px;
-
-		.ressources {}
-		.deck {}
-		.discard {}
-	}
-
-	.area-2 {
-		display: grid;
-    	grid-template-columns: 4fr 2fr 4fr;
-		gap: 5px;
-	
-		.space {
-			background-color: rgb(161, 171, 255);
-		}
-		.middle {
-			display: grid;
-			grid-template-rows: 1fr 1fr;
-			gap: 5px;
-
-			.leader {
-				background-color: rgb(255, 254, 201);
-			}
-
-			.base {
-				background-color: aliceblue;
-			}
-		}
-		.ground {
-			background-color: rgb(208, 255, 208);
-		}
 	}
 </style>
 
 
 <script is:inline>
     if (!localStorage.getItem('deck') || !sessionStorage.getItem('game')) window.location.replace('pre-game')
-	
-	const gameId = JSON.parse(sessionStorage.getItem('game')).gameId
-	const myuuid = localStorage.getItem('myuuid');
-
-	let socket = null;
-	document.addEventListener('DOMContentLoaded', async () => {
-
-		response = await fetch("/api/game-connect", {
-			method: "POST",
-			body: JSON.stringify({ game: sessionStorage.getItem('game'), uuid: localStorage.getItem('myuuid'), deck: localStorage.getItem('deck') }),
-			headers: {
-				"Content-Type": "application/json",
-			},
-		});
-
-		if (response.status === 400) {
-			window.location.replace('pre-game');
-		}
-
-		// Create WebSocket connection.
-		socket = new WebSocket("ws://" + window.location.hostname + ":8080/");
-		// Connection opened
-		socket.addEventListener("open", (event) => {
-			socket.send(JSON.stringify({ action: 'acknowledge', data: { uuid: myuuid , gameId: gameId } }));
-		});
-
-		// Listen for messages
-		socket.addEventListener("message", async (event) => {
-			const data = await JSON.parse(event.data)
-
-			console.log('message', data);
-			if (data.response) {
-			} else {
-				if (data.action && data.action === 'sendDeck') {
-					// send deck
-					const deckParsed = JSON.parse(localStorage.getItem('deck'));
-					socket.send(JSON.stringify({ action: 'sendDeck', data: { gameId: gameId, uuid: myuuid, deck: deckParsed } }));
-
-				}
-			}
-		});	
-
-		document.addEventListener("sendMessage", (event) => {
-			console.log('sendMessage', event.detail)
-			socket.send(JSON.stringify( event.detail ));
-		});
-
-		socket.addEventListener("error", (event) => {
-			console.log(event)
-			window.location.replace('pre-game')
-		});
-		// window.onbeforeunload = () => {
-		// 	fetch("/api/close-ws", {method: "GET"})
-		// }
-	});
 </script>

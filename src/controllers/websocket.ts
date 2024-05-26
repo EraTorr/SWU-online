@@ -1,6 +1,7 @@
 import { WebSocket, WebSocketServer } from 'ws';
-import { getGame, reconnect, setGame, startPhase, type Game } from './game';
+import { getGame, prepareDeckCard, reconnect, setGame, startPhase, type GameType } from './game';
 import { shuffleDeck } from './deck';
+import type { Card } from '../helpers/card';
 
 export default class WebsocketController {
     private static server: WebSocketServer;
@@ -32,18 +33,17 @@ export default class WebsocketController {
     }
 }
 
-export const handleAction = async (action, data, ws: null) => {
-    console.log(action)
-
-    let game: Game|null = null;
+export const handleAction = async (action: string, data: any, ws: WebSocket|null = null) => {
+    let game: GameType|null = null;
 
     switch (action) {
         case 'acknowledge':
             WebsocketController.connections.set(data.uuid, ws);
             game = getGame(data.gameId);
-            if (!game) break;
+            if (game === null) break;
 
-            const allConnected = [...WebsocketController.connections.keys()].filter(uuid => [game.p1, game.p2].includes(uuid)).length === 2;
+            const allConnected = [...WebsocketController.connections.keys()].filter((uuid: any) => [game?.p1, game?.p2].includes(uuid)).length === 2;
+            
             if (game.decks.p1 && game.decks.p2) {
                 console.log('reconnect', data.uuid)
                 if (game.p1 === data.uuid) {
@@ -67,11 +67,11 @@ export const handleAction = async (action, data, ws: null) => {
             if (!game) break;
 
             const deck = data.deck;
-            const deckCard: Array<string> = [];
+            const deckCard: Array<Card> = [];
 
-            deck.deck.forEach(card => {
+            deck.deck.forEach((card: any) => {
                 for (let i = 0; i < card.count; i++) {
-                    deckCard.push(card.id)
+                    deckCard.push(prepareDeckCard(card.id, data.uuid))
                 }
             });
 
@@ -82,26 +82,17 @@ export const handleAction = async (action, data, ws: null) => {
                     decks: {
                         ...game.decks, 
                         p1: {
-                            ...game.leaders.p1, 
                             fullDeck: deckCard,
                             playDeck: shuffleDeck(deckCard),
                         }
                     },
                     leaders: {
                         ...game.leaders,
-                        p1: {
-                            id: deck.leader.id,
-                            exhaust: false,
-                            epicUsed: false,
-                        }
+                        p1: prepareDeckCard(deck.leader.id, data.uuid),
                     },
                     bases: {
                         ...game.leaders,
-                        p1: {
-                            id: deck.base.id,
-                            exhaust: false,
-                            epicUsed: false,
-                        }
+                        p1: prepareDeckCard(deck.base.id, data.uuid),
                     }
                 };
             } else {
@@ -110,26 +101,17 @@ export const handleAction = async (action, data, ws: null) => {
                     decks: {
                         ...game.decks,
                         p2: {
-                            ...game.leaders.p2,
                             fullDeck: deckCard,
                             playDeck: shuffleDeck(deckCard),
                         }
                     },
                     leaders: {
                         ...game.leaders,
-                        p2: {
-                            id: deck.leader.id,
-                            exhaust: false,
-                            epicUsed: false,
-                        }
+                        p2: prepareDeckCard(deck.leader.id, data.uuid),
                     },
                     bases: {
                         ...game.bases,
-                        p2: {
-                            id: deck.base.id,
-                            exhaust: false,
-                            epicUsed: false,
-                        }
+                        p2: prepareDeckCard(deck.base.id, data.uuid),
                     }
                 };
             }
@@ -146,7 +128,7 @@ export const handleAction = async (action, data, ws: null) => {
     }
 }
 
-export const sendWS = (game, dataP1, dataP2) => {
+export const sendWS = (game: GameType, dataP1: any, dataP2: any) => {
     let responseP1 = null;
     let responseP2 = null;
     if (dataP1) responseP1 = JSON.stringify({uuids: [game.p1], data: dataP1});

@@ -1,0 +1,18 @@
+.action-list {
+    margin: 0;
+    display: none;
+    background-color: #7700ff;
+    list-style: none;
+    padding: 0;
+
+    &.visible {
+        display: block;
+    }
+
+    li {
+      padding: 5px;
+      &:hover {
+        background-color: #9c45ff;
+      }
+    }
+  }

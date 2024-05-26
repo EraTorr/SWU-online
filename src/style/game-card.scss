@@ -1,6 +1,7 @@
 .swu-card.container {
   position: absolute;
   cursor: pointer;
+  z-index: 10;
 
   &.selected {
     > img.in-game {
@@ -29,31 +30,14 @@
       max-height: none;
     }
   }
-
-  .action-list {
-    margin: 0;
-    display: none;
-    background-color: #7700ff;
-    list-style: none;
-    padding: 0;
-
-    &.visible {
-        display: block;
-    }
-
-    > li {
-      padding: 5px;
-      &:hover {
-        background-color: #9c45ff;
-      }
-    }
-  }
 }
+
 .swu-card.container:hover + .in-display {
     display: block;
 }
 
 .swu-card.in-display {
+    z-index: 15;
     border-radius: 15px;
     display: none;
     position: absolute;
@@ -61,4 +45,8 @@
     right: 10px;
     max-height: 500px;
     max-width: 500px;
+
+    &:hover {
+      display: block;
+    }
 }
