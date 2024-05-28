@@ -8,6 +8,7 @@ import { Actions } from "./Actions.tsx";
 import { opponentHandCard, type Card } from "../helpers/card.ts";
 import { Deck } from "./Deck.tsx";
 import { OpponentHandCard } from "./OpponentHandCard.tsx";
+import { DiscardPile } from "./DiscardPile.tsx";
 
 export const Game: Component = (props) => {
 
@@ -29,7 +30,8 @@ export const Game: Component = (props) => {
     const [handCards, setHandCards] = createSignal<Array<Card>>([]);
     const [deckCount, setDeckCount] = createSignal<number>(0);
     const [opponentDeckCount, setOpponentDeckCount] = createSignal<number>(0);
-
+    const [discardPileCards, setDiscardPileCards] = createSignal<Array<Card>>([]);
+    const [opponentDiscardPileCards, setOpponentDiscardPileCards] = createSignal<Array<Card>>([]);
 
     onMount(async () => {
         const game = JSON.parse(sessionStorage.getItem('game') as string);
@@ -122,21 +124,23 @@ export const Game: Component = (props) => {
                     ...data.handP1 ?? [],
                     ...data.handP2 ?? [],
                 ])
-
-                if (data.uuid === myuuid) {
+                
+                if (data.uuid === data.leaders.p1.owner) {
                     setLeader(data.leaders.p1);
-                    setOpponentLeader(data.leaders.p2);
                     setBase(data.bases.p1);
-                    setOpponentBase(data.bases.p2);
                     setDeckCount(data.decksCount.p1);
+
+                    setOpponentLeader(data.leaders.p2);
+                    setOpponentBase(data.bases.p2);
                     setOpponentDeckCount(data.decksCount.p2);
                     setOpponentHandCount(data.handsCount.p2);
                 } else {
                     setLeader(data.leaders.p2);
-                    setOpponentLeader(data.leaders.p1);
                     setBase(data.bases.p2);
-                    setOpponentBase(data.bases.p1);
                     setDeckCount(data.decksCount.p2);
+
+                    setOpponentLeader(data.leaders.p1);
+                    setOpponentBase(data.bases.p1);
                     setOpponentDeckCount(data.decksCount.p1);
                     setOpponentHandCount(data.handsCount.p1);
                 }
@@ -168,7 +172,7 @@ export const Game: Component = (props) => {
     //     setTop(domRect.y);
     // }
 
-    const calculateInitialPosition = (card: Card, index: number = 0, area: string|null = null): {x: number, y: number} => {
+    const calculateInitialPositionAbsolute = (card: Card, index: number = 0, area: string|null = null): {x: number, y: number} => {
         let side = 'top';
         if (card.side === myuuid) side = 'bottom';
         console.log('dsd', card.side, myuuid);
@@ -181,8 +185,31 @@ export const Game: Component = (props) => {
         
         if (['Base', 'Leader'].includes(card.type)) {
             const type = card.type.toLowerCase();
+            console.log(card, side, type)
+
             const b = element.querySelectorAll('.' + side + ' .' + type)[0].getBoundingClientRect();
             return {x: b.left + b.width / 2 - 50, y: b.top + b.height / 2 - 71.8 / 2}
+        }
+        return {x: 20 + index * 40, y: 20 + index * 40} 
+    }
+
+    const calculateInitialPositionRelative = (card: Card, index: number = 0, area: string|null = null): {x: number, y: number} => {
+        let side = 'top';
+        if (card.side === myuuid) side = 'bottom';
+        console.log('dsd', card.side, myuuid);
+        if (area) {
+            const el = element.querySelectorAll('.' + side + ' .' + area)[0]
+            console.log('el.children.length', el.children.length);
+            const b = el.getBoundingClientRect();
+            return {x: b.width / 2 - 50, y: b.height / 2 - 50}
+        }
+        
+        if (['Base', 'Leader'].includes(card.type)) {
+            const type = card.type.toLowerCase();
+            console.log(card, side, type)
+
+            const b = element.querySelectorAll('.' + side + ' .' + type)[0].getBoundingClientRect();
+            return {x: b.width / 2 - 50, y: b.height / 2 - 71.8 / 2}
         }
         return {x: 20 + index * 40, y: 20 + index * 40} 
     }
@@ -190,16 +217,14 @@ export const Game: Component = (props) => {
     return (
         <div ref={element} class="game">
             <div class="top">
-                <div class="hand">
+                <div class="hand flex">
                     <For each={[...Array(opponentHandCount()).keys()]}>{(_, index) => {
                         const cardData = opponentHandCard(opponentUuid);
-                        const initPos = calculateInitialPosition(cardData, index(), 'hand')
+                        const initPos = calculateInitialPositionRelative(cardData, index(), 'hand')
                         return (<OpponentHandCard
                             name={cardData.id}
                             cardData={cardData}
                             pathFront={"card_back"}
-                            initPositionX={initPos.x}
-                            initPositionY={initPos.y}
                             openActions={openActions}
                         ></OpponentHandCard>)
                         }
@@ -207,120 +232,112 @@ export const Game: Component = (props) => {
                 </div>
                 <div class="board">
                     <div class="area-1">
-                        <div class="ressources"></div>
-                        <div class="deck">
+                        <div class="ressources flex"></div>
+                        <div class="deck flex">
                             <Deck
                                 left={opponentDeckCount()}
                                 openActions={openActions}
                             ></Deck>
                         </div>
-                        <div class="discard"></div>
+                        <div class="discard flex">
+                            <DiscardPile></DiscardPile>
+                        </div>
                     </div>
                     <div class="area-2">
-                        <div class="ground"></div>
+                        <div class="ground flex"></div>
                         <div class="middle">
-                            <div class="base">
+                            <div class="base flex">
                                 <Show when={opponentBase()}>
-                                    {(baseP2) => {
-                                        const card = baseP2();
-                                        const initPos = calculateInitialPosition(card);
+                                    {(c) => {
+                                        const card = c();
+                                        const initPos = calculateInitialPositionRelative(card);
                                         return <GameCard
                                             name={card.id}
                                             cardData={card}
                                             pathFront={"SOR/" + card.number}
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
-                                            initPositionX={initPos.x}
-                                            initPositionY={initPos.y}
                                             openActions={openActions}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
                             </div>
-                            <div class="leader">
+                            <div class="leader flex">
                                 <Show when={opponentLeader()}>
-                                    {(leaderP2) => {
-                                        const card = leaderP2();
-                                        const initPos = calculateInitialPosition(card);
+                                    {(c) => {
+                                        const card = c();
+                                        const initPos = calculateInitialPositionRelative(card);
                                         return <GameCard
                                             name={card.id}
                                             cardData={card}
                                             pathFront={"SOR/" + card.number}
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
-                                            initPositionX={initPos.x}
-                                            initPositionY={initPos.y}
                                             openActions={openActions}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
                             </div>
                         </div>
-                        <div class="space"></div>
+                        <div class="space flex"></div>
                     </div>
                 </div>
             </div>
             <div class="bottom">
                 <div class="board">
                     <div class="area-2">
-                        <div class="ground"></div>
+                        <div class="ground flex"></div>
                         <div class="middle">
-                            <div class="leader">
+                            <div class="leader flex">
                                 <Show when={leader()}>
-                                    {(leaderP1) => {
-                                        const card = leaderP1();
-                                        const initPos = calculateInitialPosition(card);
+                                    {(c) => {
+                                        const card = c();
+                                        const initPos = calculateInitialPositionRelative(card);
                                         return <GameCard
                                             name={card.id}
                                             cardData={card}
                                             pathFront={"SOR/" + card.number}
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
-                                            initPositionX={initPos.x}
-                                            initPositionY={initPos.y}
                                             openActions={openActions}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
                             </div>
-                            <div class="base">
+                            <div class="base flex">
                                 <Show when={base()}>
-                                    {(baseP1) => {
-                                        const card = baseP1();
-                                        const initPos = calculateInitialPosition(card);
+                                    {(c) => {
+                                        const card = c();
+                                        const initPos = calculateInitialPositionRelative(card);
                                         return <GameCard
                                             name={card.id}
                                             cardData={card}
                                             pathFront={"SOR/" + card.number}
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
-                                            initPositionX={initPos.x}
-                                            initPositionY={initPos.y}
                                             openActions={openActions}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
                             </div>
                         </div>
-                        <div class="space"></div>
+                        <div class="space flex"></div>
                     </div>
                     <div class="area-1">
-                        <div class="ressources"></div>
-                        <div class="deck">
+                        <div class="ressources flex"></div>
+                        <div class="deck flex">
                             <Deck
                                 left={deckCount()}
                                 openActions={openActions}
                             ></Deck>
                         </div>
-                        <div class="discard"></div>
+                        <div class="discard flex"></div>
                     </div>
                 </div>
-                <div class="hand">
+                <div class="hand flex">
                     <For each={cards()}>{(card, index) => {
-                        const initPos = calculateInitialPosition(card, index(), 'hand')
+                        const initPos = calculateInitialPositionRelative(card, index(), 'hand')
                         return (<GameCard
                             name={card.id}
                             cardData={card}
                             pathFront={"SOR/" + card.number}
                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
-                            initPositionX={initPos.x}
-                            initPositionY={initPos.y}
                             openActions={openActions}
                         ></GameCard>)
                         }

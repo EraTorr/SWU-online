@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import db from './sor' assert  { type: "json" };
+import {sorCard} from './sor';
 console.log(db.data);
 
-const d = db.data.map((cards) => {
+const d = sorCard.map((cards) => {
     return {
         set: cards.Set,
         number: cards.Number,

@@ -24,8 +24,8 @@ export const GameCard: Component<GameCardProps> = (props) => {
       name: "",
       pathFront: "",
       pathBack: "card_back",
-      initPositionX: 10,
-      initPositionY: 10,
+      initPositionX: 0,
+      initPositionY: 0,
       showActionList: true,
       owner: 1, // 2
       playerView: 1, // 2

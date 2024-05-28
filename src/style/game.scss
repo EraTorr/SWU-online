@@ -1,3 +1,10 @@
+.flex {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+}
+
 .game {
     display: flex;
     flex-direction: column;
@@ -82,9 +89,6 @@
         .ressources {}
         .deck {
             background-color: aquamarine;
-            display: flex;
-            justify-content: center;
-            align-items: center;
 
             img {
                 max-width: 100px;
@@ -133,7 +137,7 @@
             background-color: white;
 
             &:before {
-                filter: opacity(0.8);
+                filter: opacity(0.7);
                 content: '';
                 display: block;
                 width: 100%;
