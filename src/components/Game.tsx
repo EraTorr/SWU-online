@@ -24,7 +24,7 @@ export const Game: Component = (props) => {
 
     const [socket, setSocket] = createSignal<WebSocket|null>(null);
     const [actions, setActions] = createSignal<string>('');
-    const [actionsCard, setActionsCard] = createSignal<string>('');
+const [actionsCard, setActionsCard] = createSignal<string>('');
     const [cards, setCards] = createSignal<Array<Card>>([]);
     const [opponentHandCount, setOpponentHandCount] = createSignal<number>(0);
     const [handCards, setHandCards] = createSignal<Array<Card>>([]);
@@ -115,9 +115,7 @@ export const Game: Component = (props) => {
 
     const executeStep = (data: any) => {
         const step = data.step;
-    
-        console.log(step, data)
-    
+        
         switch (step) {
             case 'initGame':
                 setCards([
@@ -125,7 +123,7 @@ export const Game: Component = (props) => {
                     ...data.handP2 ?? [],
                 ])
                 
-                if (data.uuid === data.leaders.p1.owner) {
+                if (myuuid === data.leaders.p1.owner) {
                     setLeader(data.leaders.p1);
                     setBase(data.bases.p1);
                     setDeckCount(data.decksCount.p1);
@@ -220,7 +218,6 @@ export const Game: Component = (props) => {
                 <div class="hand flex">
                     <For each={[...Array(opponentHandCount()).keys()]}>{(_, index) => {
                         const cardData = opponentHandCard(opponentUuid);
-                        const initPos = calculateInitialPositionRelative(cardData, index(), 'hand')
                         return (<OpponentHandCard
                             name={cardData.id}
                             cardData={cardData}
@@ -240,7 +237,9 @@ export const Game: Component = (props) => {
                             ></Deck>
                         </div>
                         <div class="discard flex">
-                            <DiscardPile></DiscardPile>
+                            <DiscardPile
+                                cardList={opponentDiscardPileCards()}
+                            ></DiscardPile>
                         </div>
                     </div>
                     <div class="area-2">
@@ -250,7 +249,6 @@ export const Game: Component = (props) => {
                                 <Show when={opponentBase()}>
                                     {(c) => {
                                         const card = c();
-                                        const initPos = calculateInitialPositionRelative(card);
                                         return <GameCard
                                             name={card.id}
                                             cardData={card}
@@ -265,7 +263,6 @@ export const Game: Component = (props) => {
                                 <Show when={opponentLeader()}>
                                     {(c) => {
                                         const card = c();
-                                        const initPos = calculateInitialPositionRelative(card);
                                         return <GameCard
                                             name={card.id}
                                             cardData={card}
@@ -290,7 +287,6 @@ export const Game: Component = (props) => {
                                 <Show when={leader()}>
                                     {(c) => {
                                         const card = c();
-                                        const initPos = calculateInitialPositionRelative(card);
                                         return <GameCard
                                             name={card.id}
                                             cardData={card}
@@ -305,7 +301,7 @@ export const Game: Component = (props) => {
                                 <Show when={base()}>
                                     {(c) => {
                                         const card = c();
-                                        const initPos = calculateInitialPositionRelative(card);
+                                        console.log('base', card)
                                         return <GameCard
                                             name={card.id}
                                             cardData={card}
@@ -327,12 +323,16 @@ export const Game: Component = (props) => {
                                 openActions={openActions}
                             ></Deck>
                         </div>
-                        <div class="discard flex"></div>
+                        <div class="discard flex">
+                            <DiscardPile
+                                cardList={discardPileCards()}
+                            >
+                            </DiscardPile>
+                        </div>
                     </div>
                 </div>
                 <div class="hand flex">
                     <For each={cards()}>{(card, index) => {
-                        const initPos = calculateInitialPositionRelative(card, index(), 'hand')
                         return (<GameCard
                             name={card.id}
                             cardData={card}

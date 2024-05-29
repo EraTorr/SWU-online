@@ -4,7 +4,6 @@ import "../style/deck.scss";
 import type { Card } from "../helpers/card";
 
 interface DiscardPileProps {
-    count?: number;
     cardList?: Array<Card>
     openActions?: (data: any) => void;
 }
@@ -12,7 +11,6 @@ interface DiscardPileProps {
 export const DiscardPile: Component<DiscardPileProps> = (props) => {
     const merged = mergeProps(
         {
-          count: 0,
           cardList: [] as Array<Card>,
           openActions: (e: any) => console.log(e),
         },
@@ -27,7 +25,7 @@ export const DiscardPile: Component<DiscardPileProps> = (props) => {
 
     return (
         <div onClick={clickHandle} class="swu-deck">
-            <span>{merged.count}</span>
+            <span>{merged.cardList.length}</span>
         </div>
     )
 }

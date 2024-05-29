@@ -105,7 +105,6 @@ export const setGame = (game: GameType): void => {
 }
 
 export const startPhase = (gameId: string) => {
-  console.log(sorCard);
   const game = getGame(gameId) as GameType;
   const drawResultP1 = draw(6, game.decks.p1?.playDeck ?? []);
   const drawResultP2 = draw(6, game.decks.p2?.playDeck ?? []);
@@ -153,8 +152,6 @@ export const startPhase = (gameId: string) => {
 export const reconnect = (gameId: string, playerUuid: string) => {
   const game = getGame(gameId) as GameType;
   
-  console.log(game.p1, game.p2, playerUuid);  
-
   const decksCount =  {p1: game.decks.p1?.playDeck?.length ?? 0, p2: game.decks.p2?.playDeck?.length ?? 0};
   const handsCount =  {p1: game.hands.p1?.cards?.length ?? 0, p2: game.hands.p2?.cards?.length ?? 0};
   const leaders = {p1: game.leaders.p1, p2: game.leaders.p2};
@@ -165,7 +162,6 @@ export const reconnect = (gameId: string, playerUuid: string) => {
 
   if (game.p1 === playerUuid) {
     const dataP1 = {
-      uuid: playerUuid,
       step: 'initGame',
       decksCount,
       handsCount, 
@@ -181,7 +177,6 @@ export const reconnect = (gameId: string, playerUuid: string) => {
     sendWS(game, dataP1, null);
   } else {
     const dataP2 = {
-      uuid: playerUuid,
       step: 'initGame',
       decksCount,
       handsCount, 
