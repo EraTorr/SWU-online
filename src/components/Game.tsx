@@ -4,10 +4,10 @@ import {GameCard} from '../components/GameCard.tsx';
 
 import "../style/game.scss";
 import { newListener } from "../helpers/app.helper.ts";
-import { Actions } from "./Actions.tsx";
-import { opponentHandCard, type Card } from "../helpers/card.ts";
+import { Actions, type ActionsData } from "./Actions.tsx";
+import { opponentHiddenCard, type Card } from "../helpers/card.ts";
 import { Deck } from "./Deck.tsx";
-import { OpponentHandCard } from "./OpponentHandCard.tsx";
+import { OpponentHiddenCard } from "./OpponentHiddenCard.tsx";
 import { DiscardPile } from "./DiscardPile.tsx";
 
 export const Game: Component = (props) => {
@@ -23,15 +23,19 @@ export const Game: Component = (props) => {
     const [opponentLeader, setOpponentLeader] = createSignal<Card>();
 
     const [socket, setSocket] = createSignal<WebSocket|null>(null);
-    const [actions, setActions] = createSignal<string>('');
-const [actionsCard, setActionsCard] = createSignal<string>('');
+    const [actionsData, setActionsData] = createSignal<ActionsData|null>(null);
+    // const [actionsArea, setActionsArea] = createSignal<string>('');
+    // const [actionsCard, setActionsCard] = createSignal<string>('');
     const [cards, setCards] = createSignal<Array<Card>>([]);
     const [opponentHandCount, setOpponentHandCount] = createSignal<number>(0);
+    const [opponentResourcesCount, setOpponentResourcesCount] = createSignal<number>(11);
+    const [opponentExhaustedResourcesCount, setOpponentExhaustedResourcesCount] = createSignal<number>(1);
     const [handCards, setHandCards] = createSignal<Array<Card>>([]);
     const [deckCount, setDeckCount] = createSignal<number>(0);
     const [opponentDeckCount, setOpponentDeckCount] = createSignal<number>(0);
     const [discardPileCards, setDiscardPileCards] = createSignal<Array<Card>>([]);
     const [opponentDiscardPileCards, setOpponentDiscardPileCards] = createSignal<Array<Card>>([]);
+    const [resourcesCards, setResourcesCards] = createSignal<Array<Card>>([]);
 
     onMount(async () => {
         const game = JSON.parse(sessionStorage.getItem('game') as string);
@@ -98,18 +102,13 @@ const [actionsCard, setActionsCard] = createSignal<string>('');
         
     })
 
-    const openActions = (e:any) => {
-        console.log(e);
-        setActions(e.type);
-        setActionsCard(e.card);
-
-        console.log(actions());
+    const openActions = (e: ActionsData) => {
+        setActionsData(e);
     }
 
     const sendEvent = (e: any) => {
-        setActions('');
-        const card = actionsCard();
-        setActionsCard('');
+        const card = actionsData()?.card;
+        setActionsData(null);
         console.log(card, e);
     }
 
@@ -212,40 +211,91 @@ const [actionsCard, setActionsCard] = createSignal<string>('');
         return {x: 20 + index * 40, y: 20 + index * 40} 
     }
 
+    const cardPushNewPosition = (card: Card, side: string, area: string): void => {
+        console.log(card, side, area);
+
+    }
+
     return (
         <div ref={element} class="game">
             <div class="top">
-                <div class="hand flex">
+                <div class="hand flex" data-action="top-hand">
                     <For each={[...Array(opponentHandCount()).keys()]}>{(_, index) => {
-                        const cardData = opponentHandCard(opponentUuid);
-                        return (<OpponentHandCard
-                            name={cardData.id}
-                            cardData={cardData}
-                            pathFront={"card_back"}
-                            openActions={openActions}
-                        ></OpponentHandCard>)
+                            const cardData = opponentHiddenCard(opponentUuid, 'hand');
+                            return (<OpponentHiddenCard
+                                name={cardData.id}
+                                cardData={cardData}
+                                pathFront="card_back"
+                                openActions={openActions}
+                                pushNewPostion={cardPushNewPosition}
+                                area="hand"
+                            ></OpponentHiddenCard>)
                         }
                     }</For>
                 </div>
                 <div class="board">
                     <div class="area-1">
-                        <div class="ressources flex"></div>
-                        <div class="deck flex">
+                        <div class="ressource flex" data-action="top-ressource">
+                        <For each={[...Array(opponentResourcesCount()).keys()]}>{(_, index) => {
+                                if (index() === 0 && opponentExhaustedResourcesCount()) {
+                                    const cardData = opponentHiddenCard(opponentUuid, 'ressource', true);
+                                    return (<OpponentHiddenCard
+                                        name={cardData.id}
+                                        cardData={cardData}
+                                        pathFront="card_back"
+                                        openActions={openActions}
+                                        pushNewPostion={cardPushNewPosition}
+                                        area="hand"
+                                        count={opponentExhaustedResourcesCount()}
+                                    ></OpponentHiddenCard>)
+                                } else if (index() < opponentExhaustedResourcesCount()) {
+                                    return (<></>);
+                                } else if (opponentResourcesCount() > 9 && index() === opponentExhaustedResourcesCount()) {
+                                    const cardData = opponentHiddenCard(opponentUuid, 'ressource', index() < opponentExhaustedResourcesCount());
+                                    const count = opponentResourcesCount() - opponentExhaustedResourcesCount()
+                                    console.log(opponentResourcesCount(), count )
+                                    return (<OpponentHiddenCard
+                                        name={cardData.id}
+                                        cardData={cardData}
+                                        pathFront="card_back"
+                                        openActions={openActions}
+                                        pushNewPostion={cardPushNewPosition}
+                                        area="hand"
+                                        count={count}
+                                    ></OpponentHiddenCard>)
+                                } else if (opponentResourcesCount() > 9) {
+                                    return (<></>);
+                                }
+                                const cardData = opponentHiddenCard(opponentUuid, 'ressource', index() < opponentExhaustedResourcesCount());
+
+                                return (<OpponentHiddenCard
+                                    name={cardData.id}
+                                    cardData={cardData}
+                                    pathFront="card_back"
+                                    openActions={openActions}
+                                    pushNewPostion={cardPushNewPosition}
+                                    area="hand"
+                                ></OpponentHiddenCard>)
+                            }
+                        }</For>
+                        
+                        </div>
+                        <div class="deck flex" data-action="top-deck">
                             <Deck
                                 left={opponentDeckCount()}
                                 openActions={openActions}
                             ></Deck>
                         </div>
-                        <div class="discard flex">
+                        <div class="discard flex" data-action="top-discard">
                             <DiscardPile
                                 cardList={opponentDiscardPileCards()}
                             ></DiscardPile>
                         </div>
                     </div>
                     <div class="area-2">
-                        <div class="ground flex"></div>
+                        <div class="ground flex" data-action="top-ground"></div>
                         <div class="middle">
-                            <div class="base flex">
+                            <div class="base flex" data-action="top-base">
                                 <Show when={opponentBase()}>
                                     {(c) => {
                                         const card = c();
@@ -255,11 +305,12 @@ const [actionsCard, setActionsCard] = createSignal<string>('');
                                             pathFront={"SOR/" + card.number}
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                             openActions={openActions}
+                                            pushNewPostion={cardPushNewPosition}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
                             </div>
-                            <div class="leader flex">
+                            <div class="leader flex" data-action="top-leader">
                                 <Show when={opponentLeader()}>
                                     {(c) => {
                                         const card = c();
@@ -269,21 +320,22 @@ const [actionsCard, setActionsCard] = createSignal<string>('');
                                             pathFront={"SOR/" + card.number}
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                             openActions={openActions}
+                                            pushNewPostion={cardPushNewPosition}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
                             </div>
                         </div>
-                        <div class="space flex"></div>
+                        <div class="space flex" data-action="top-space"></div>
                     </div>
                 </div>
             </div>
             <div class="bottom">
                 <div class="board">
                     <div class="area-2">
-                        <div class="ground flex"></div>
+                        <div class="ground flex" data-action="bottom-ground"></div>
                         <div class="middle">
-                            <div class="leader flex">
+                            <div class="leader flex" data-action="bottom-leader">
                                 <Show when={leader()}>
                                     {(c) => {
                                         const card = c();
@@ -293,11 +345,12 @@ const [actionsCard, setActionsCard] = createSignal<string>('');
                                             pathFront={"SOR/" + card.number}
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                             openActions={openActions}
+                                            pushNewPostion={cardPushNewPosition}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
                             </div>
-                            <div class="base flex">
+                            <div class="base flex" data-action="bottom-base">
                                 <Show when={base()}>
                                     {(c) => {
                                         const card = c();
@@ -308,22 +361,23 @@ const [actionsCard, setActionsCard] = createSignal<string>('');
                                             pathFront={"SOR/" + card.number}
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                             openActions={openActions}
+                                            pushNewPostion={cardPushNewPosition}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
                             </div>
                         </div>
-                        <div class="space flex"></div>
+                        <div class="space flex" data-action="bottom-space"></div>
                     </div>
                     <div class="area-1">
-                        <div class="ressources flex"></div>
-                        <div class="deck flex">
+                        <div class="ressource flex" data-action="bottom-ressource"></div>
+                        <div class="deck flex" data-action="bottom-deck">
                             <Deck
                                 left={deckCount()}
                                 openActions={openActions}
                             ></Deck>
                         </div>
-                        <div class="discard flex">
+                        <div class="discard flex" data-action="bottom-discard">
                             <DiscardPile
                                 cardList={discardPileCards()}
                             >
@@ -331,7 +385,7 @@ const [actionsCard, setActionsCard] = createSignal<string>('');
                         </div>
                     </div>
                 </div>
-                <div class="hand flex">
+                <div class="hand flex" data-action="bottom-hand">
                     <For each={cards()}>{(card, index) => {
                         return (<GameCard
                             name={card.id}
@@ -339,15 +393,17 @@ const [actionsCard, setActionsCard] = createSignal<string>('');
                             pathFront={"SOR/" + card.number}
                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                             openActions={openActions}
+                            area="hand"
+                            pushNewPostion={cardPushNewPosition}
                         ></GameCard>)
                         }
                     }</For>
                 </div>
             </div>
 
-            <Show when={actions()}>
+            <Show when={actionsData()}>
                 <Actions
-                    cardType={actions()}
+                    data={actionsData() as ActionsData}
                     sendEvent={sendEvent}
                 ></Actions>
             </Show>

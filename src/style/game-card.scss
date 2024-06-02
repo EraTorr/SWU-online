@@ -8,12 +8,17 @@
   }
 
   &.selected {
-    position: absolute;
+    position: fixed;
     z-index: 20;
 
     > img.in-game {
       box-shadow: 0px 0px 5px 5px red;
     }
+  }
+
+  &.exhausted {
+    filter: grayscale(1) contrast(0.4);
+    transform: rotateZ(5deg);
   }
 
   > img {

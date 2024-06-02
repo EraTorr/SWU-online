@@ -194,7 +194,7 @@ export const reconnect = (gameId: string, playerUuid: string) => {
   }
 }
 
-export const prepareDeckCard = (id: string, owner: string) => {
+export const prepareDeckCard = (id: string, owner: string, index = 0) => {
   let tempCard;
   const [set, number] = id.split('_');
   if (set === 'SOR') {
@@ -203,6 +203,6 @@ export const prepareDeckCard = (id: string, owner: string) => {
     tempCard = sorCard[parseInt(number) - 1];
   }
    
-  let card = {id: id, owner, side: owner, ...tempCard} as Card;
+  let card = {id: id + '_' + index.toString(), owner, side: owner, ...tempCard} as Card;
   return card;
 };

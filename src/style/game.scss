@@ -6,6 +6,7 @@
 }
 
 .game {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -86,7 +87,7 @@
         display: grid;
         grid-template-columns: 5fr 85px 85px;
     
-        .ressources {}
+        .ressource {}
         .deck {
             background-color: aquamarine;
 

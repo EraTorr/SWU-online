@@ -71,7 +71,7 @@ export const handleAction = async (action: string, data: any, ws: WebSocket|null
 
             deck.deck.forEach((card: any) => {
                 for (let i = 0; i < card.count; i++) {
-                    deckCard.push(prepareDeckCard(card.id, data.uuid))
+                    deckCard.push(prepareDeckCard(card.id, data.uuid, i))
                 }
             });
 

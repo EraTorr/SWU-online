@@ -11,7 +11,7 @@ export const Deck: Component<DeckProps> = (props) => {
     const clickHandle = (event: any) => {
         stopEvent(event);
 
-        props.openActions({type: 'deck', card: 'deck'});
+        props.openActions({type: 'deck', area: 'deck'});
       };
 
     return (

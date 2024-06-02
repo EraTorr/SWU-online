@@ -1,10 +1,17 @@
 import type { Component } from "solid-js";
-import { mergeProps, createSignal, onMount, For } from "solid-js";
+import { mergeProps, createSignal, onMount, For, createEffect } from "solid-js";
 import {GameCard} from '../components/GameCard.tsx';
 import "../style/actions.scss";
+import type { Card } from "../helpers/card.ts";
+
+export interface ActionsData {
+    type: string;
+    area: string;
+    card?: Card;
+}
 
 interface ActionsProps {
-    cardType: string;
+    data: ActionsData;
     sendEvent: (e: any) => void
 }
 
@@ -14,34 +21,103 @@ export const Actions: Component<ActionsProps> = (props) => {
 
     const [action, setAction] = createSignal<Array<Array<string>>>([]);
 
+    createEffect((prevData) => {
+        console.log('cEA', JSON.stringify(prevData) !== JSON.stringify(props.data));
+        if (JSON.stringify(prevData) !== JSON.stringify(props.data)) {
+            console.log("type changed to", props.data.area, )
+            actionList('prevCardtype')
+        }
+        return props.data;
+    })
+
+    const clickMouseEvent = (e: MouseEvent) => {
+        if (!!action().length && !(e.target as HTMLElement)?.closest('.action-list')) {
+            props.sendEvent('close');
+            document.removeEventListener('click', clickMouseEvent);
+        }
+    }
+      
     onMount(() => {
         // TODO reload action list when parent remove list of action
-        // How is it made with solidjs lifecycle
-        actionList(props.cardType)
-        document.addEventListener('click', (e: MouseEvent) => {
-            console.log('open', action(), action().length);
-            if (!!action().length && !(e.target as HTMLElement)?.closest('.action-list')) {
-                props.sendEvent('close');
-            }
-        })
+        document.addEventListener('click', clickMouseEvent)
     })
     
-    const actionList = (cardType: string): any => {
+    const actionList = (from: any): any => {
         const action = [];
-        console.log(cardType)
+        console.log('actionList', props.data.type, props.data.area, from)
         
-        if (cardType) {
-            action.push(
-                ['flip', 'Flip'],
-                ['follow', 'Follow'],
-                ['moveToSpace', 'Move to space'],
-                ['moveToGround', 'Move to ground'],
-                ['moveToDiscard', 'Move to discard'],
-                ['moveToHand', 'Move to hand'],
-                ['moveToRessource', 'Move to ressource'],
-            );
+        switch (props.data.type.toLowerCase()) {
+            case 'leader':
+                action.push(
+                    ['action', 'Action'],
+                    ['invoke', 'Invoke'],
+                );
+                break;
+            case 'base':
+                action.push(
+                    ['epic', 'Epic action'],
+                );
+                break;
+            case 'deck':
+                action.push(
+                    ['draw', 'Draw X'],
+                    ['look', 'Look X'],
+                    ['discard', 'Discard X'],
+                    ['shuffle', 'Shuffle']
+                );
+                break;
+            default:
+                action.push(
+                    ['flip', 'Flip'],
+                    ['follow', 'Follow'],
+                    ['moveToSpace', 'Move to space'],
+                    ['moveToGround', 'Move to ground'],
+                    ['moveToDiscard', 'Move to discard'],
+                    ['moveToHand', 'Move to hand'],
+                    ['moveToRessource', 'Move to ressource'],
+                    ['move', 'Move'],
+                    ['moveToDeckTop', 'Move to Deck top'],
+                    ['moveToDeckBottom', 'Move to Deck bottom'],
+                );
+                break;
         }
-        console.log('action', cardType, action)
+
+        switch (props.data.area) {
+            case 'discard':
+                action.push(
+                    ['look', 'Look'],
+                );
+                break;
+            case 'hand':
+                action.push(
+                    ['play', 'Play'],
+                );
+                break;
+            case 'space':
+                action.push(
+                    ['action', 'Action'],
+                    ['attack', 'Attack'],
+                );
+                break;
+            case 'ground':
+                action.push(
+                    ['action', 'Action'],
+                    ['attack', 'Attack'],
+                );
+                break;
+            case 'resource':
+                action.push(
+                    ['exhaust', 'Exhaust'],
+                );
+                break;
+            default:
+                action.push(
+                    ['', 'Default area'],
+                )
+                break;
+        }
+
+        console.log('action', action)
 
         setAction(action);
     }

@@ -16,6 +16,7 @@ interface GameCardProps {
   playerView?: number;
   openActions: (data: any) => void;
   area?: string;
+  pushNewPostion: (card: Card, side: string, area: string) => void;
 }
 
 export const GameCard: Component<GameCardProps> = (props) => {
@@ -62,16 +63,44 @@ export const GameCard: Component<GameCardProps> = (props) => {
     if (!following()) {
       setFollowing(true);
       element.classList.add("selected");
+      handleMouseMove(event);
       document.addEventListener("mousemove", handleMouseMove);
     } else {
-      setFollowing(false);
-      element.classList.remove("selected");
-      document.removeEventListener("mousemove", handleMouseMove);
+      const dataPush = identifyClickArea(event);
+      if (dataPush) {
+        setFollowing(false);
+        element.classList.remove("selected");
+        document.removeEventListener("mousemove", handleMouseMove);
+        props.pushNewPostion(props.cardData, dataPush.side, dataPush.area);
+        setLeft(0);
+        setTop(0);
+      }
+      
     }
     if (showActionListAlpine()) {
       toggleActionList();
     }
   };
+
+  const identifyClickArea = (event: any) => {
+    const els = document.elementsFromPoint(event.clientX, event.clientY) as Array<HTMLElement>;
+
+    let [playerZone, area] = ['', ''];
+    for(let i = 0; i < els.length; i++) {
+      const dataAction = els[i].dataset.action
+      if (dataAction) {
+        [playerZone, area] = dataAction.split('-')
+        break; 
+      }
+    }
+  
+    if (playerZone === '') {
+      return null;
+    }
+
+    return {side: playerZone === 'top' ? 'opponent' : 'player', area};
+  };
+
   const handleMouseMove = (event: any) => {
     const { clientX, clientY } = event;
     const domRect = element.getBoundingClientRect();
@@ -79,6 +108,7 @@ export const GameCard: Component<GameCardProps> = (props) => {
     setLeft(-domRect.width / 2 + clientX);
     setTop(-domRect.height / 2 + clientY);
   };
+
   const flip = (event: any) => {
     stopEvent(event);
 
@@ -105,18 +135,19 @@ export const GameCard: Component<GameCardProps> = (props) => {
       return;
     }
 
-    merged.openActions({type: 'test', card: merged.name});
+    merged.openActions({type: merged.cardData.type, card: merged.cardData, area: merged.area});
   };
 
+  const alt = merged.cardData.name + (merged.cardData.subtitle ? ' - ' + merged.cardData.subtitle : '') + ' ' + merged.cardData.set + merged.cardData.number;
 
   return (
     <>
       <div ref={element} class="swu-card container" onClick={clickHandle}
-        style={'top:'+ top() +'px; left: '+ left()+'px'}>
+        style={'top:'+ top() +'px; left: '+ left()+'px'} classList={{exhausted: !!merged.cardData.exhaust}}>
         <img
           class="in-game"
           src={	urlVisible() }
-          alt={merged.name}
+          alt={alt}
           draggable="false"
         />
       </div>
@@ -124,7 +155,7 @@ export const GameCard: Component<GameCardProps> = (props) => {
         <img
           class="swu-card in-display"
           src={urlVisible(true)}
-          alt={merged.name}
+          alt={alt}
           draggable="false"
         />
       </Show>

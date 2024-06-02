@@ -26,18 +26,19 @@ export type Card = {
     side?: string;
 };
 
-export const opponentHandCard = (opponentUuid: string): Card => {
+export const opponentHiddenCard = (opponentUuid: string, type: string, exhaust = false): Card => {
     return {
         id: '0',
         cost: 0,
         set: 'no',
         number: '000',
         name: 'card_back',
-        type: 'Hand',
+        type,
         frontText: 'card_back',
         rarity: 'no',
         unique: false,
         owner: opponentUuid,
         side: opponentUuid,
+        exhaust
     }
 }
