@@ -36,6 +36,10 @@ export const Game: Component = (props) => {
     const [discardPileCards, setDiscardPileCards] = createSignal<Array<Card>>([]);
     const [opponentDiscardPileCards, setOpponentDiscardPileCards] = createSignal<Array<Card>>([]);
     const [resourcesCards, setResourcesCards] = createSignal<Array<Card>>([]);
+    const [groundCards, setGroundCards] = createSignal<Array<Card>>([]);
+    const [spaceCards, setSpaceCards] = createSignal<Array<Card>>([]);
+    const [opponentGroundCards, setOpponentGroundCards] = createSignal<Array<Card>>([]);
+    const [opponentSpaceCards, setOpponentSpaceCards] = createSignal<Array<Card>>([]);
 
     onMount(async () => {
         const game = JSON.parse(sessionStorage.getItem('game') as string);
@@ -117,10 +121,10 @@ export const Game: Component = (props) => {
         
         switch (step) {
             case 'initGame':
-                setCards([
-                    ...data.handP1 ?? [],
-                    ...data.handP2 ?? [],
-                ])
+                // setCards([
+                //     ...data.handP1 ?? [],
+                //     ...data.handP2 ?? [],
+                // ])
                 
                 if (myuuid === data.leaders.p1.owner) {
                     setLeader(data.leaders.p1);
@@ -211,10 +215,31 @@ export const Game: Component = (props) => {
         return {x: 20 + index * 40, y: 20 + index * 40} 
     }
 
-    const cardPushNewPosition = (card: Card, side: string, area: string): void => {
-        console.log(card, side, area);
+    const cardPushNewPosition = (card: Card, side: string, area: string, fromArea: string): void => {
+        if (card.side === myuuid) {
+            switch (fromArea) {
+                case 'hand':
+                    const from = handCards();
+                    const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
+                    setHandCards(newFrom);
+                    break;
+            }
 
+            switch (area) {
+                case 'ground':
+                    const from = groundCards();
+                    // const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
+                    setGroundCards([...from, card]);
+                    break;
+            }
+        } else {
+            switch (fromArea) {
+                case '':
+                    break;
+            }
+        }
     }
+
 
     return (
         <div ref={element} class="game">
@@ -293,23 +318,21 @@ export const Game: Component = (props) => {
                         </div>
                     </div>
                     <div class="area-2">
-                        <div class="ground flex" data-action="top-ground"></div>
+                        <div class="ground flex" data-action="top-ground">
+                            <For each={opponentGroundCards()}>{(card, index) => {
+                                    return (<GameCard
+                                        name={card.id}
+                                        cardData={card}
+                                        pathFront={"SOR/" + card.number}
+                                        pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
+                                        openActions={openActions}
+                                        area="space"
+                                        pushNewPostion={cardPushNewPosition}
+                                    ></GameCard>)
+                                }
+                            }</For>
+                        </div>
                         <div class="middle">
-                            <div class="base flex" data-action="top-base">
-                                <Show when={opponentBase()}>
-                                    {(c) => {
-                                        const card = c();
-                                        return <GameCard
-                                            name={card.id}
-                                            cardData={card}
-                                            pathFront={"SOR/" + card.number}
-                                            pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
-                                            openActions={openActions}
-                                            pushNewPostion={cardPushNewPosition}
-                                        ></GameCard>}
-                                    }                                    
-                                </Show>
-                            </div>
                             <div class="leader flex" data-action="top-leader">
                                 <Show when={opponentLeader()}>
                                     {(c) => {
@@ -320,23 +343,14 @@ export const Game: Component = (props) => {
                                             pathFront={"SOR/" + card.number}
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                             openActions={openActions}
+                                            area="leader"
                                             pushNewPostion={cardPushNewPosition}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
                             </div>
-                        </div>
-                        <div class="space flex" data-action="top-space"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="bottom">
-                <div class="board">
-                    <div class="area-2">
-                        <div class="ground flex" data-action="bottom-ground"></div>
-                        <div class="middle">
-                            <div class="leader flex" data-action="bottom-leader">
-                                <Show when={leader()}>
+                            <div class="base flex" data-action="top-base">
+                                <Show when={opponentBase()}>
                                     {(c) => {
                                         const card = c();
                                         return <GameCard
@@ -345,11 +359,48 @@ export const Game: Component = (props) => {
                                             pathFront={"SOR/" + card.number}
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                             openActions={openActions}
+                                            area="base"
                                             pushNewPostion={cardPushNewPosition}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
                             </div>
+                        </div>
+                        <div class="space flex" data-action="top-space">
+                            <For each={opponentSpaceCards()}>{(card, index) => {
+                                    return (<GameCard
+                                        name={card.id}
+                                        cardData={card}
+                                        pathFront={"SOR/" + card.number}
+                                        pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
+                                        openActions={openActions}
+                                        area="space"
+                                        pushNewPostion={cardPushNewPosition}
+                                    ></GameCard>)
+                                }
+                            }</For>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bottom">
+                <div class="board">
+                    <div class="area-2">
+                        <div class="ground flex" data-action="bottom-ground">
+                            <For each={groundCards()}>{(card, index) => {
+                                    return (<GameCard
+                                        name={card.id}
+                                        cardData={card}
+                                        pathFront={"SOR/" + card.number}
+                                        pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
+                                        openActions={openActions}
+                                        area="ground"
+                                        pushNewPostion={cardPushNewPosition}
+                                    ></GameCard>)
+                                }
+                            }</For>
+                        </div>
+                        <div class="middle">
                             <div class="base flex" data-action="bottom-base">
                                 <Show when={base()}>
                                     {(c) => {
@@ -361,13 +412,43 @@ export const Game: Component = (props) => {
                                             pathFront={"SOR/" + card.number}
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                             openActions={openActions}
+                                            area="base"
+                                            pushNewPostion={cardPushNewPosition}
+                                        ></GameCard>}
+                                    }                                    
+                                </Show>
+                            </div>
+                            <div class="leader flex" data-action="bottom-leader">
+                                <Show when={leader()}>
+                                    {(c) => {
+                                        const card = c();
+                                        return <GameCard
+                                            name={card.id}
+                                            cardData={card}
+                                            pathFront={"SOR/" + card.number}
+                                            pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
+                                            openActions={openActions}
+                                            area="leader"
                                             pushNewPostion={cardPushNewPosition}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
                             </div>
                         </div>
-                        <div class="space flex" data-action="bottom-space"></div>
+                        <div class="space flex" data-action="bottom-space">
+                            <For each={spaceCards()}>{(card, index) => {
+                                    return (<GameCard
+                                        name={card.id}
+                                        cardData={card}
+                                        pathFront={"SOR/" + card.number}
+                                        pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
+                                        openActions={openActions}
+                                        area="space"
+                                        pushNewPostion={cardPushNewPosition}
+                                    ></GameCard>)
+                                }
+                            }</For>
+                        </div>
                     </div>
                     <div class="area-1">
                         <div class="ressource flex" data-action="bottom-ressource"></div>
@@ -386,16 +467,16 @@ export const Game: Component = (props) => {
                     </div>
                 </div>
                 <div class="hand flex" data-action="bottom-hand">
-                    <For each={cards()}>{(card, index) => {
-                        return (<GameCard
-                            name={card.id}
-                            cardData={card}
-                            pathFront={"SOR/" + card.number}
-                            pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
-                            openActions={openActions}
-                            area="hand"
-                            pushNewPostion={cardPushNewPosition}
-                        ></GameCard>)
+                    <For each={handCards()}>{(card, index) => {
+                            return (<GameCard
+                                name={card.id}
+                                cardData={card}
+                                pathFront={"SOR/" + card.number}
+                                pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
+                                openActions={openActions}
+                                area="hand"
+                                pushNewPostion={cardPushNewPosition}
+                            ></GameCard>)
                         }
                     }</For>
                 </div>

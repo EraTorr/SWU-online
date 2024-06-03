@@ -14,7 +14,7 @@ interface OpponentHiddenCardProps {
   owner?: number;
   playerView?: number;
   openActions: (data: any) => void;
-  pushNewPostion: (card: Card, side: string, area: string) => void;
+  pushNewPostion: (card: Card, side: string, area: string, fromArea: string) => void;
   area: string;
   count?: number;
 }
