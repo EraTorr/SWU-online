@@ -28,6 +28,7 @@ export const Game: Component = (props) => {
     // const [actionsCard, setActionsCard] = createSignal<string>('');
     const [cards, setCards] = createSignal<Array<Card>>([]);
     const [opponentHandCount, setOpponentHandCount] = createSignal<number>(0);
+    const [opponentHandCards, setOpponentHandCards] = createSignal<Array<Card>>([]);
     const [opponentResourcesCount, setOpponentResourcesCount] = createSignal<number>(11);
     const [opponentExhaustedResourcesCount, setOpponentExhaustedResourcesCount] = createSignal<number>(1);
     const [handCards, setHandCards] = createSignal<Array<Card>>([]);
@@ -216,26 +217,97 @@ export const Game: Component = (props) => {
     }
 
     const cardPushNewPosition = (card: Card, side: string, area: string, fromArea: string): void => {
-        if (card.side === myuuid) {
-            switch (fromArea) {
-                case 'hand':
-                    const from = handCards();
-                    const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
-                    setHandCards(newFrom);
-                    break;
-            }
+        const fromSide = card.side === myuuid ? 'player': 'opponent';
+        const isFromPlayer = fromSide === 'player';
+        const isToPlayer = side === 'player';
+        console.log(fromArea, area, side, fromSide)
+        // TODO bug duplicate because Card.side is not updated 
+        // TODO bug ground opponent to ground player
+        if (fromArea === area && side === fromSide) return;
 
-            switch (area) {
-                case 'ground':
-                    const from = groundCards();
-                    // const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
-                    setGroundCards([...from, card]);
-                    break;
+        switch (fromArea) {
+            case 'hand': {
+                const from = isFromPlayer ? handCards() : opponentHandCards();
+                const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
+                isFromPlayer ? setHandCards(newFrom) : setOpponentHandCards(newFrom);
+                break;
             }
-        } else {
-            switch (fromArea) {
-                case '':
-                    break;
+            case 'resources': {
+                const from = isFromPlayer ? resourcesCards(): opponentResourcesCount();
+                isFromPlayer
+                    ? setResourcesCards( (from as Array<Card>).filter((cardFrom) => cardFrom.id !== card.id) ) 
+                    : setOpponentResourcesCount(from as number + 1); 
+                break;
+            }
+            case 'deck': {
+                const from = isToPlayer ? deckCount() : opponentDeckCount();
+                isToPlayer 
+                    ? setDeckCount(from - 1) 
+                    : setOpponentDeckCount(from - 1); 
+                break;
+            }
+            case 'discard': {
+                const from = isFromPlayer ? discardPileCards() : opponentDiscardPileCards();
+                const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
+                isFromPlayer ? setDiscardPileCards(newFrom) : setOpponentDiscardPileCards(newFrom);
+                break;
+            }
+            case 'ground': {
+                const from = isFromPlayer ? groundCards() : opponentGroundCards();
+                const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
+                isFromPlayer ? setGroundCards(newFrom) : setOpponentGroundCards(newFrom);
+                break;
+            }
+            case 'space': {
+                const from = isFromPlayer ? spaceCards() : opponentSpaceCards();
+                const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
+                isFromPlayer ? setSpaceCards(newFrom) : setOpponentSpaceCards(newFrom);
+                break;
+            }
+            case 'leader': {
+                break;
+            }
+        }
+
+        switch (area) {
+            case 'hand': {
+                const from = isToPlayer? handCards() : opponentHandCards();
+                // const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
+                isToPlayer ? setHandCards([...from, card]) : setOpponentHandCards([...from, card]);
+                break;
+            }
+            case 'resources': {
+                const from = isToPlayer ? resourcesCards() : opponentResourcesCount();
+                isToPlayer 
+                    ? setResourcesCards([...from as Array<Card>, card]) 
+                    : setOpponentResourcesCount(from as number + 1); 
+                break;
+            }
+            case 'deck': {
+                const from = isToPlayer ? deckCount() : opponentDeckCount();
+                isToPlayer 
+                    ? setDeckCount(from + 1) 
+                    : setOpponentDeckCount(from + 1); 
+                break;
+            }
+            case 'discard': {
+                const from = isToPlayer ? discardPileCards() : opponentDiscardPileCards();
+                isToPlayer ? setDiscardPileCards([...from, card]) : setOpponentDiscardPileCards([...from, card]);
+                break;
+            }
+            case 'ground': {
+                const from = isToPlayer ? groundCards() : opponentGroundCards();
+                // const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
+                isToPlayer ? setGroundCards([...from, card]) : setOpponentGroundCards([...from, card]);
+                break;
+            }
+            case 'space': {
+                const from = isToPlayer ? spaceCards() : opponentSpaceCards();
+                isToPlayer ? setSpaceCards([...from, card]) : setOpponentSpaceCards([...from, card]);
+                break;
+            }
+            case 'leader': {
+                break;
             }
         }
     }
