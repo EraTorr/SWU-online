@@ -22,13 +22,13 @@ export type Card = {
     rarity: string;
     unique: boolean;
     keywords?: Array<string>;
-    owner?: string;
-    side?: string;
+    owner: string;
+    side: string;
 };
 
-export const opponentHiddenCard = (opponentUuid: string, type: string, exhaust = false): Card => {
+export const hiddenCard = (cardUuid:string, ownerUuid: string, type: string, exhaust = false): Card => {
     return {
-        id: '0',
+        id: cardUuid,
         cost: 0,
         set: 'no',
         number: '000',
@@ -37,8 +37,8 @@ export const opponentHiddenCard = (opponentUuid: string, type: string, exhaust =
         frontText: 'card_back',
         rarity: 'no',
         unique: false,
-        owner: opponentUuid,
-        side: opponentUuid,
+        owner: ownerUuid,
+        side: ownerUuid,
         exhaust
     }
 }

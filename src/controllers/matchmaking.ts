@@ -35,13 +35,14 @@ export default class MatchMakingController {
             p1: player1,
             p2: player2,
             gameId: uuidv4(),
-            decks: {},
-            hands: {},
-            resources: {},
-            grounds: {},
-            spaces: {},
-            leaders: {},
-            bases: {},
+            decks: {p1: {fullDeck: [], playDeck: []}, p2: {fullDeck: [], playDeck: []}},
+            hands: {p1: {cards: []}, p2: {cards: []}},
+            resources: {p1: {cards: []}, p2: {cards: []}},
+            grounds: {p1: {cards: []}, p2: {cards: []}},
+            spaces: {p1: {cards: []}, p2: {cards: []}},
+            discards: {p1: {cards: []}, p2: {cards: []}},
+            leaders: {p1: null, p2: null},
+            bases: {p1: null, p2: null},
         };
 
         setGame(gameState);

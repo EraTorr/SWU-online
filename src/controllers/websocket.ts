@@ -1,5 +1,5 @@
 import { WebSocket, WebSocketServer } from 'ws';
-import { getGame, prepareDeckCard, reconnect, setGame, startPhase, type GameType } from './game';
+import { getGame, moveCard, prepareDeckCard, reconnect, setGame, startPhase, type GameType } from './game';
 import { shuffleDeck } from './deck';
 import type { Card } from '../helpers/card';
 
@@ -44,7 +44,7 @@ export const handleAction = async (action: string, data: any, ws: WebSocket|null
 
             const allConnected = [...WebsocketController.connections.keys()].filter((uuid: any) => [game?.p1, game?.p2].includes(uuid)).length === 2;
             
-            if (game.decks.p1 && game.decks.p2) {
+            if (game.decks.p1.fullDeck.length && game.decks.p2.fullDeck.length) {
                 console.log('reconnect', data.uuid)
                 if (game.p1 === data.uuid) {
                     const dataP1 = {action: 'reconnect'};
@@ -123,7 +123,11 @@ export const handleAction = async (action: string, data: any, ws: WebSocket|null
             }
             break;
         case 'reconnect':
-            reconnect(data.gameId, data.uuid)
+            reconnect(data.gameId, data.uuid);
+            break;
+        case 'moveCard':
+            console.log(data);
+            moveCard(data.gameId, data.move);
             break;
     }
 }
