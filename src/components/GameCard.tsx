@@ -41,13 +41,14 @@ export const GameCard: Component<GameCardProps> = (props) => {
   const [top, setTop] = createSignal(merged.initPositionY);
 
   let element!: HTMLDivElement;
-  // onMount(() => {
-  //   if (merged.cardData.type === 'Leader') {
-  //     setVisibleSide('front')
-  //   }
-  // })
+  onMount(() => {
+    if (merged.area === 'resource') {
+      setVisibleSide('back')
+    }
+  })
 
   const urlVisible = (display = false) => {
+    console.log(display, merged.pathBack, merged.playerView, merged.cardData.type, merged.owner)
     if (display && merged.pathBack === 'card_back' && merged.playerView === merged.owner) {
       return 'https://ik.imagekit.io/nrqvxs6itqd/SWU/'+ merged.pathFront + '.png';
     }
@@ -151,7 +152,7 @@ export const GameCard: Component<GameCardProps> = (props) => {
           draggable="false"
         />
       </div>
-      <Show when={merged.cardData.id !== '0'}>
+      <Show when={merged.cardData.number !== '0' && merged.cardData.number !== '000'}>
         <img
           class="swu-card in-display"
           src={urlVisible(true)}

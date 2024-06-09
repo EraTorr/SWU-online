@@ -147,18 +147,40 @@ export const startPhase = (gameId: string) => {
 
   setGame(updatedGame);
   const decksCount =  {p1: drawResultP1.deck.length, p2: drawResultP2.deck.length};
-  const handsCount =  {p1: 6, p2: 6};
-  const leaders = {p1: game.leaders.p1, p2: game.leaders.p2};
-  const bases = {p1: game.bases.p1, p2: game.bases.p2};
+  const leaders = {p1: updatedGame.leaders.p1, p2: updatedGame.leaders.p2};
+  const bases = {p1: updatedGame.bases.p1, p2: updatedGame.bases.p2};
 
-  const handsP1 = {p1: game.hands.p1?.cards, p2: game.hands.p2?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))};
-  const handsP2 = {p2: game.hands.p2?.cards, p1: game.hands.p1?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))};
-  const resourcesP1 = {p1: game.resources.p1?.cards, p2: game.resources.p2?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))};
-  const resourcesP2 = {p2: game.resources.p2?.cards, p1: game.resources.p1?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))};
+  const handsP1 = {p1: updatedGame.hands.p1?.cards, p2: updatedGame.hands.p2?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))};
+  const handsP2 = {p2: updatedGame.hands.p2?.cards, p1: updatedGame.hands.p1?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))};
+  const resourcesP1 = {p1: updatedGame.resources.p1?.cards, p2: updatedGame.resources.p2?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))};
+  const resourcesP2 = {p2: updatedGame.resources.p2?.cards, p1: updatedGame.resources.p1?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))};
+  const discards = {p1: game.discards.p1?.cards, p2: game.discards.p2?.cards};
+  const spaces = {p1: game.spaces.p1?.cards, p2: game.spaces.p2?.cards};
+  const grounds = {p1: game.grounds.p1?.cards, p2: game.grounds.p2?.cards};
 
-  const dataP1 = {step: 'initGame', decksCount, handsCount, hands: handsP1, resources: resourcesP1, handP1: drawResultP1.hand, leaders, bases};
-  const dataP2 = {step: 'initGame', decksCount, handsCount, hands: handsP2, resources: resourcesP2, handP2: drawResultP2.hand, leaders, bases};
-
+  const dataP1 = {
+    step: 'initGame',
+    decksCount,
+    hands: handsP1,
+    leaders,
+    bases,
+    resources: resourcesP1,
+    grounds,
+    spaces,
+    discards,
+  };
+  const dataP2 = {
+    step: 'initGame',
+    decksCount,
+    hands: handsP2,
+    leaders,
+    bases,
+    resources: resourcesP2,
+    grounds,
+    spaces,
+    discards,
+  };
+  
   sendWS(game, dataP1, dataP2);
 };
 
@@ -166,26 +188,20 @@ export const reconnect = (gameId: string, playerUuid: string) => {
   const game = getGame(gameId) as GameType;
   
   const decksCount =  {p1: game.decks.p1?.playDeck?.length ?? 0, p2: game.decks.p2?.playDeck?.length ?? 0};
-  const handsCount =  {p1: game.hands.p1?.cards?.length ?? 0, p2: game.hands.p2?.cards?.length ?? 0};
   const leaders = {p1: game.leaders.p1, p2: game.leaders.p2};
   const bases = {p1: game.bases.p1, p2: game.bases.p2};
   const grounds = {p1: game.grounds.p1?.cards, p2: game.grounds.p2?.cards};
   const spaces = {p1: game.spaces.p1?.cards, p2: game.spaces.p2?.cards};
   const discards = {p1: game.discards.p1?.cards, p2: game.discards.p2?.cards};
-  const resourcesCount = {p1: game.resources.p1?.cards.length, p2: game.resources.p2?.cards.length};
 
   if (game.p1 === playerUuid) {
     const dataP1 = {
       step: 'initGame',
       decksCount,
-      handsCount, 
       hands: {p1: game.hands.p1?.cards, p2: game.hands.p2?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))},
-      handP1: game.hands.p1?.cards ?? [],
       leaders,
       bases,
       resources: {p1: game.resources.p1?.cards, p2: game.resources.p2?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))},
-      resourcesP1: game.resources.p1?.cards ?? [],
-      resourcesCount,
       grounds,
       spaces,
       discards,
@@ -195,14 +211,10 @@ export const reconnect = (gameId: string, playerUuid: string) => {
     const dataP2 = {
       step: 'initGame',
       decksCount,
-      handsCount, 
       hands: {p2: game.hands.p2?.cards, p1: game.hands.p1?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))},
-      handP2: game.hands.p2?.cards ?? [],
       leaders,
       bases,
       resources: {p2: game.resources.p2?.cards, p1: game.resources.p1?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))},
-      resourcesP1: game.resources.p1?.cards ?? [],
-      resourcesCount,
       grounds,
       spaces,
       discards,
@@ -232,6 +244,7 @@ export type MoveCardType = {
   fromArea: string;
   playerUuid: string;
 }
+
 export const moveCard = (gameId: string, moveData: MoveCardType) => {
   const game = getGame(gameId) as GameType;
   console.log(game, moveData)
@@ -239,10 +252,11 @@ export const moveCard = (gameId: string, moveData: MoveCardType) => {
 
   const fromSide = card.side === game.p1 ? 'p1': 'p2';
   const player = playerUuid === game.p1 ? 'p1': 'p2';
-  const isFromPlayer = fromSide === player;
-  const isToPlayer = side === player;
+  // const isFromPlayer = fromSide === player;
+  // const isToPlayer = side === player;
+  const toSide = side === 'player' ? (player === 'p1' ? 'p1' : 'p2') : (player === 'p1' ? 'p2' : 'p1');
   console.log(fromArea, area, side, fromSide)
-  if (fromArea === area && isFromPlayer === isToPlayer) return;
+  if (fromArea === area && fromSide === toSide) return;
 
   switch (fromArea) {
       case 'hand': {
@@ -251,7 +265,7 @@ export const moveCard = (gameId: string, moveData: MoveCardType) => {
           game.hands[fromSide].cards = newFrom;
           break;
       }
-      case 'resources': {
+      case 'resource': {
           const from = game.resources[fromSide].cards as Array<Card>;
           const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
           game.resources[fromSide].cards = newFrom;
@@ -286,35 +300,45 @@ export const moveCard = (gameId: string, moveData: MoveCardType) => {
       }
   }
 
+  const newCard = {
+    ...card,
+    side: game[toSide]
+  }
+
   switch (area) {
       case 'hand': {
-        const from = game.hands[fromSide].cards as Array<Card>;
-        game.hands[fromSide].cards = [...from, card];
+        const from = game.hands[toSide].cards as Array<Card>;
+        game.hands[toSide].cards = [...from, newCard];
         break;
       }
-      case 'resources': {
-        const from = game.resources[fromSide].cards as Array<Card>;
-        game.resources[fromSide].cards = [...from, card];
+      case 'resource': {
+        const from = game.resources[toSide].cards as Array<Card>;
+        game.resources[toSide].cards = [...from, newCard];
         break;
       }
-      case 'deck': {
-        const from = game.decks[fromSide].playDeck as Array<Card>;
-        game.decks[fromSide].playDeck = [...from, card];
+      case 'decktop': {
+        const from = game.decks[toSide].playDeck as Array<Card>;
+        game.decks[toSide].playDeck = [...from, newCard];
+        break;
+      }
+      case 'deckbottom': {
+        const from = game.decks[toSide].playDeck as Array<Card>;
+        game.decks[toSide].playDeck = [newCard, ...from];
         break;
       }
       case 'discard': {
-        const from = game.discards[fromSide].cards as Array<Card>;
-        game.discards[fromSide].cards = [...from, card];
+        const from = game.discards[toSide].cards as Array<Card>;
+        game.discards[toSide].cards = [...from, newCard];
         break;
       }
       case 'ground': {
-        const from = game.grounds[fromSide].cards as Array<Card>;
-        game.grounds[fromSide].cards = [...from, card];
+        const from = game.grounds[toSide].cards as Array<Card>;
+        game.grounds[toSide].cards = [...from, newCard];
         break;
       }
       case 'space': {
-        const from = game.spaces[fromSide].cards as Array<Card>;
-        game.spaces[fromSide].cards = [...from, card];
+        const from = game.spaces[toSide].cards as Array<Card>;
+        game.spaces[toSide].cards = [...from, newCard];
         break;
       }
       case 'leader': {
@@ -322,103 +346,80 @@ export const moveCard = (gameId: string, moveData: MoveCardType) => {
       }
   }
 
-  // sendWS(game, )
+  console.log('move', game)
+
+  setGame(game);
+
+  buildDataPlayer(gameId, playerUuid);
+  buildDataPlayer(gameId, playerUuid, true);
 };
 
-/*
-const cardPushNewPosition = (card: Card, side: string, area: string, fromArea: string): void => {
-  const fromSide = card.side === myuuid ? 'player': 'opponent';
-  const isFromPlayer = fromSide === 'player';
-  const isToPlayer = side === 'player';
-  console.log(fromArea, area, side, fromSide)
-  // TODO bug duplicate because Card.side is not updated 
-  // TODO bug ground opponent to ground player
-  if (fromArea === area && side === fromSide) return;
+export const buildDataPlayer = (gameId: string, playerUuid: string, opponent = false) => {
+  const game = getGame(gameId) as GameType;
+  
+  const decksCount =  {p1: game.decks.p1?.playDeck?.length ?? 0, p2: game.decks.p2?.playDeck?.length ?? 0};
+  const leaders = {p1: game.leaders.p1, p2: game.leaders.p2};
+  const bases = {p1: game.bases.p1, p2: game.bases.p2};
+  const grounds = {p1: game.grounds.p1?.cards, p2: game.grounds.p2?.cards};
+  const spaces = {p1: game.spaces.p1?.cards, p2: game.spaces.p2?.cards};
+  const discards = {p1: game.discards.p1?.cards, p2: game.discards.p2?.cards};
 
-  switch (fromArea) {
-      case 'hand': {
-          const from = isFromPlayer ? handCards() : opponentHandCards();
-          const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
-          isFromPlayer ? setHandCards(newFrom) : setOpponentHandCards(newFrom);
-          break;
-      }
-      case 'resources': {
-          const from = isFromPlayer ? resourcesCards(): opponentResourcesCount();
-          isFromPlayer
-              ? setResourcesCards( (from as Array<Card>).filter((cardFrom) => cardFrom.id !== card.id) ) 
-              : setOpponentResourcesCount(from as number + 1); 
-          break;
-      }
-      case 'deck': {
-          const from = isToPlayer ? deckCount() : opponentDeckCount();
-          isToPlayer 
-              ? setDeckCount(from - 1) 
-              : setOpponentDeckCount(from - 1); 
-          break;
-      }
-      case 'discard': {
-          const from = isFromPlayer ? discardPileCards() : opponentDiscardPileCards();
-          const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
-          isFromPlayer ? setDiscardPileCards(newFrom) : setOpponentDiscardPileCards(newFrom);
-          break;
-      }
-      case 'ground': {
-          const from = isFromPlayer ? groundCards() : opponentGroundCards();
-          const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
-          isFromPlayer ? setGroundCards(newFrom) : setOpponentGroundCards(newFrom);
-          break;
-      }
-      case 'space': {
-          const from = isFromPlayer ? spaceCards() : opponentSpaceCards();
-          const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
-          isFromPlayer ? setSpaceCards(newFrom) : setOpponentSpaceCards(newFrom);
-          break;
-      }
-      case 'leader': {
-          break;
-      }
-  }
+  if (game.p1 === playerUuid && !opponent || game.p2 === playerUuid && opponent) {
+    const dataP1 = {
+      step: 'updateData',
+      decksCount,
+      hands: {p1: game.hands.p1?.cards, p2: game.hands.p2?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))},
+      leaders,
+      bases,
+      resources: {p1: game.resources.p1?.cards, p2: game.resources.p2?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))},
+      grounds,
+      spaces,
+      discards,
+    };
+    sendWS(game, dataP1, null);
+  } else {
+    const dataP2 = {
+      step: 'updateData',
+      decksCount,
+      hands: {p2: game.hands.p2?.cards, p1: game.hands.p1?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))},
+      leaders,
+      bases,
+      resources: {p2: game.resources.p2?.cards, p1: game.resources.p1?.cards.map((card): Card => hiddenCard(card.id, card.owner, card.type, card.exhaust))},
+      grounds,
+      spaces,
+      discards,
+    };
 
-  switch (area) {
-      case 'hand': {
-          const from = isToPlayer? handCards() : opponentHandCards();
-          // const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
-          isToPlayer ? setHandCards([...from, card]) : setOpponentHandCards([...from, card]);
-          break;
-      }
-      case 'resources': {
-          const from = isToPlayer ? resourcesCards() : opponentResourcesCount();
-          isToPlayer 
-              ? setResourcesCards([...from as Array<Card>, card]) 
-              : setOpponentResourcesCount(from as number + 1); 
-          break;
-      }
-      case 'deck': {
-          const from = isToPlayer ? deckCount() : opponentDeckCount();
-          isToPlayer 
-              ? setDeckCount(from + 1) 
-              : setOpponentDeckCount(from + 1); 
-          break;
-      }
-      case 'discard': {
-          const from = isToPlayer ? discardPileCards() : opponentDiscardPileCards();
-          isToPlayer ? setDiscardPileCards([...from, card]) : setOpponentDiscardPileCards([...from, card]);
-          break;
-      }
-      case 'ground': {
-          const from = isToPlayer ? groundCards() : opponentGroundCards();
-          // const newFrom = from.filter((cardFrom) => cardFrom.id !== card.id)
-          isToPlayer ? setGroundCards([...from, card]) : setOpponentGroundCards([...from, card]);
-          break;
-      }
-      case 'space': {
-          const from = isToPlayer ? spaceCards() : opponentSpaceCards();
-          isToPlayer ? setSpaceCards([...from, card]) : setOpponentSpaceCards([...from, card]);
-          break;
-      }
-      case 'leader': {
-          break;
-      }
+    sendWS(game, null, dataP2);
   }
+};
+
+export const drawCard = (gameId: string, draw: any) => {
+  const game = getGame(gameId) as GameType;
+
+  const { value, side, playerUuid } = draw;
+
+  const player = playerUuid === game.p1 ? 'p1' : 'p2';
+
+
+// case 'deck': {
+  const fromDeck = game.decks[player].playDeck as Array<Card>;
+  const drawnedCards = fromDeck.splice(0, value-1);
+  game.decks[player].playDeck = fromDeck;
+
+
+  // hand 
+  const fromHand = game.hands[player].cards as Array<Card>;
+  const newFromHand = [...fromHand, ...drawnedCards];
+  game.hands[player].cards = newFromHand;
+
+  setGame(game);
+  buildDataPlayer(gameId, playerUuid);
+  buildDataPlayer(gameId, playerUuid, true);
 }
-*/
+
+
+export const shuffleCard = (gameId: string, shuffle: any) => {
+  const game = getGame(gameId) as GameType;
+
+}

@@ -20,6 +20,10 @@
         background-color: black;
         height: 415px;
         display: grid;
+
+        // > * {
+        //     overflow: hidden;
+        // }
     
         .hand {
             height: 105px;
@@ -92,7 +96,10 @@
         display: grid;
         grid-template-columns: 5fr 85px 85px;
     
-        .ressource {}
+        .ressource {
+            justify-content: flex-start;
+            margin: 0 5px;
+        }
         .deck {
             background-color: aquamarine;
 

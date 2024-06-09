@@ -1,5 +1,5 @@
 import { WebSocket, WebSocketServer } from 'ws';
-import { getGame, moveCard, prepareDeckCard, reconnect, setGame, startPhase, type GameType } from './game';
+import { drawCard, getGame, moveCard, prepareDeckCard, reconnect, setGame, startPhase, type GameType } from './game';
 import { shuffleDeck } from './deck';
 import type { Card } from '../helpers/card';
 
@@ -91,7 +91,7 @@ export const handleAction = async (action: string, data: any, ws: WebSocket|null
                         p1: prepareDeckCard(deck.leader.id, data.uuid),
                     },
                     bases: {
-                        ...game.leaders,
+                        ...game.bases,
                         p1: prepareDeckCard(deck.base.id, data.uuid),
                     }
                 };
@@ -118,7 +118,8 @@ export const handleAction = async (action: string, data: any, ws: WebSocket|null
 
             setGame(updatedGame);
             
-            if (updatedGame.decks.p1 && updatedGame.decks.p2) {
+            if (updatedGame.decks.p1.fullDeck.length && updatedGame.decks.p2.fullDeck.length) {
+                console.log('test', updatedGame.decks.p1.fullDeck.length, updatedGame.decks.p2.fullDeck.length)
                 startPhase(updatedGame.gameId);
             }
             break;
@@ -128,6 +129,12 @@ export const handleAction = async (action: string, data: any, ws: WebSocket|null
         case 'moveCard':
             console.log(data);
             moveCard(data.gameId, data.move);
+            break;
+        case 'draw':
+            drawCard(data.gameId, data.draw);
+            break;
+        case 'shuffle':
+            // shuffleCard(data.gameId, data.shuffle);
             break;
     }
 }

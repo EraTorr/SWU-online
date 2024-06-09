@@ -20,6 +20,7 @@ export const Actions: Component<ActionsProps> = (props) => {
     let element!: HTMLDivElement;
 
     const [action, setAction] = createSignal<Array<Array<string>>>([]);
+    const [selected, setSelected] = createSignal<string>('');
 
     createEffect((prevData) => {
         console.log('cEA', JSON.stringify(prevData) !== JSON.stringify(props.data));
@@ -31,7 +32,8 @@ export const Actions: Component<ActionsProps> = (props) => {
     })
 
     const clickMouseEvent = (e: MouseEvent) => {
-        if (!!action().length && !(e.target as HTMLElement)?.closest('.action-list')) {
+        console.log(e, action().length, (e.target as HTMLElement)?.closest('.action-list'));
+        if (!action().length) {
             props.sendEvent('close');
             document.removeEventListener('click', clickMouseEvent);
         }
@@ -66,18 +68,33 @@ export const Actions: Component<ActionsProps> = (props) => {
                     ['shuffle', 'Shuffle']
                 );
                 break;
+            case 'moveto':
+                action.push(
+                    ['to_space', 'Move to space'],
+                    ['to_ground', 'Move to ground'],
+                    ['to_discard', 'Move to discard'],
+                    ['to_hand', 'Move to hand'],
+                    ['to_resource', 'Move to resource'],
+                    ['to_decktop', 'Move to Deck top'],
+                    ['to_deckbottom', 'Move to Deck bottom'],
+                );
+                break;
+            case 'draw':
+                action.push(
+                    ['draw_1', '1'],
+                    ['draw_2', '2'],
+                    ['draw_3', '3'],
+                    ['draw_4', '4'],
+                    ['draw_5', '5'],
+                );
+                break;
             default:
                 action.push(
                     ['flip', 'Flip'],
                     ['follow', 'Follow'],
-                    ['moveToSpace', 'Move to space'],
-                    ['moveToGround', 'Move to ground'],
-                    ['moveToDiscard', 'Move to discard'],
-                    ['moveToHand', 'Move to hand'],
-                    ['moveToRessource', 'Move to ressource'],
+                    ['moveto_player', 'Move to (You)'],
+                    ['moveto_opponent', 'Move to (Opponent)'],
                     ['move', 'Move'],
-                    ['moveToDeckTop', 'Move to Deck top'],
-                    ['moveToDeckBottom', 'Move to Deck bottom'],
                 );
                 break;
         }
@@ -91,18 +108,21 @@ export const Actions: Component<ActionsProps> = (props) => {
             case 'hand':
                 action.push(
                     ['play', 'Play'],
+                    ['reveal', 'Reveal'],
                 );
                 break;
             case 'space':
                 action.push(
                     ['action', 'Action'],
                     ['attack', 'Attack'],
+                    ['changeStats', 'Change Stats'],
                 );
                 break;
             case 'ground':
                 action.push(
                     ['action', 'Action'],
                     ['attack', 'Attack'],
+                    ['changeStats', 'Change Stats'],
                 );
                 break;
             case 'resource':
@@ -112,7 +132,7 @@ export const Actions: Component<ActionsProps> = (props) => {
                 break;
             default:
                 action.push(
-                    ['', 'Default area'],
+                    ['back', 'back'],
                 )
                 break;
         }
@@ -122,12 +142,27 @@ export const Actions: Component<ActionsProps> = (props) => {
         setAction(action);
     }
 
+    const onClickAction = (e: MouseEvent, action: string) => {
+        let subText = '';
+        const select = selected();
+        if (action.startsWith('moveto')) {
+            setSelected(action);
+        }
+        if (select.startsWith('moveto')) {
+            
+            subText = '_' + select.split('_')[1];
+            setSelected('')
+        }
+
+        props.sendEvent(action + subText);
+    }
+
     return (
         <div ref={element} class="action-list" classList={{visible: !!action().length}}>
           {/* <ul class="action-list"> */}
           <ul>
             <For each={action()}>{(action) =>
-              <li onClick={() => props.sendEvent(action[0])}>
+              <li onClick={(e) => onClickAction(e, action[0])}>
                   {action[1]}
               </li>
             }</For>

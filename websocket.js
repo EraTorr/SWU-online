@@ -38,7 +38,7 @@ server.on('connection', async function connection(ws) {
                 console.log(e);
             }
         } else if (message.uuids && message.data) {
-            console.log('send', message.uuids);
+            console.log('send', message.uuids, message.data);
 
             message.uuids.forEach(uuid => {
                 connections.get(uuid).send(JSON.stringify(message.data));              
