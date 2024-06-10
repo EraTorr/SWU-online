@@ -1,5 +1,5 @@
 import { WebSocket, WebSocketServer } from 'ws';
-import { drawCard, getGame, moveCard, prepareDeckCard, reconnect, setGame, startPhase, type GameType } from './game';
+import { damageCard, discardCard, drawCard, getGame, healCard, lookCard, moveCard, prepareDeckCard, reconnect, setGame, startPhase, type GameType } from './game';
 import { shuffleDeck } from './deck';
 import type { Card } from '../helpers/card';
 
@@ -131,7 +131,21 @@ export const handleAction = async (action: string, data: any, ws: WebSocket|null
             moveCard(data.gameId, data.move);
             break;
         case 'draw':
-            drawCard(data.gameId, data.draw);
+            drawCard(data.gameId, data.action);
+            break;
+        case 'look':
+            console.log('look', data);
+
+            lookCard(data.gameId, data.action);
+            break;
+        case 'discard':
+            discardCard(data.gameId, data.action);
+            break;
+        case 'heal':
+            healCard(data.gameId, data.action);
+            break;
+        case 'damage':
+            damageCard(data.gameId, data.action);
             break;
         case 'shuffle':
             // shuffleCard(data.gameId, data.shuffle);

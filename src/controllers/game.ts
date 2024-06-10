@@ -316,12 +316,12 @@ export const moveCard = (gameId: string, moveData: MoveCardType) => {
         game.resources[toSide].cards = [...from, newCard];
         break;
       }
-      case 'decktop': {
+      case 'deckbottom': {
         const from = game.decks[toSide].playDeck as Array<Card>;
         game.decks[toSide].playDeck = [...from, newCard];
         break;
       }
-      case 'deckbottom': {
+      case 'decktop': {
         const from = game.decks[toSide].playDeck as Array<Card>;
         game.decks[toSide].playDeck = [newCard, ...from];
         break;
@@ -397,14 +397,15 @@ export const buildDataPlayer = (gameId: string, playerUuid: string, opponent = f
 export const drawCard = (gameId: string, draw: any) => {
   const game = getGame(gameId) as GameType;
 
-  const { value, side, playerUuid } = draw;
+  console.log(draw);
+  const { value, playerUuid } = draw;
 
   const player = playerUuid === game.p1 ? 'p1' : 'p2';
 
 
 // case 'deck': {
   const fromDeck = game.decks[player].playDeck as Array<Card>;
-  const drawnedCards = fromDeck.splice(0, value-1);
+  const drawnedCards = fromDeck.splice(0, value);
   game.decks[player].playDeck = fromDeck;
 
 
@@ -417,6 +418,20 @@ export const drawCard = (gameId: string, draw: any) => {
   buildDataPlayer(gameId, playerUuid);
   buildDataPlayer(gameId, playerUuid, true);
 }
+
+export const lookCard = (gameId: string, action: any) => {
+  console.log(gameId, action)
+};
+export const discardCard = (gameId: string, action: any) => {
+};
+
+
+export const healCard = (gameId: string, action: any) => {
+};
+
+export const damageCard = (gameId: string, action: any) => {
+};
+
 
 
 export const shuffleCard = (gameId: string, shuffle: any) => {

@@ -1,5 +1,5 @@
 import type { Component } from "solid-js";
-import { mergeProps, createSignal, onMount, For, createEffect } from "solid-js";
+import { mergeProps, createSignal, onMount, For, createEffect, Show } from "solid-js";
 import {GameCard} from '../components/GameCard.tsx';
 import "../style/actions.scss";
 import type { Card } from "../helpers/card.ts";
@@ -12,7 +12,7 @@ export interface ActionsData {
 
 interface ActionsProps {
     data: ActionsData;
-    sendEvent: (e: any) => void
+    sendEvent: (e: any, value?: any) => void
 }
 
 export const Actions: Component<ActionsProps> = (props) => {
@@ -47,6 +47,7 @@ export const Actions: Component<ActionsProps> = (props) => {
     const actionList = (from: any): any => {
         const action = [];
         console.log('actionList', props.data.type, props.data.area, from)
+        let areaAction = props.data.area;
         
         switch (props.data.type.toLowerCase()) {
             case 'leader':
@@ -58,6 +59,8 @@ export const Actions: Component<ActionsProps> = (props) => {
             case 'base':
                 action.push(
                     ['epic', 'Epic action'],
+                    ['damage', 'Damage X'],
+                    ['heal', 'Heal X'],
                 );
                 break;
             case 'deck':
@@ -70,13 +73,13 @@ export const Actions: Component<ActionsProps> = (props) => {
                 break;
             case 'moveto':
                 action.push(
-                    ['to_space', 'Move to space'],
-                    ['to_ground', 'Move to ground'],
-                    ['to_discard', 'Move to discard'],
-                    ['to_hand', 'Move to hand'],
-                    ['to_resource', 'Move to resource'],
-                    ['to_decktop', 'Move to Deck top'],
-                    ['to_deckbottom', 'Move to Deck bottom'],
+                    ['to_space', 'Space'],
+                    ['to_ground', 'Ground'],
+                    ['to_discard', 'Discard'],
+                    ['to_hand', 'Hand'],
+                    ['to_resource', 'Resource'],
+                    ['to_decktop', 'Deck top'],
+                    ['to_deckbottom', 'Deck bottom'],
                 );
                 break;
             case 'draw':
@@ -87,6 +90,30 @@ export const Actions: Component<ActionsProps> = (props) => {
                     ['draw_4', '4'],
                     ['draw_5', '5'],
                 );
+
+                areaAction = '';
+                break;
+            case 'discard':
+                action.push(
+                    ['discard_1', '1'],
+                    ['discard_2', '2'],
+                    ['discard_3', '3'],
+                    ['discard_4', '4'],
+                    ['discard_5', '5'],
+                );
+
+                areaAction = '';
+                break;
+            case 'look':
+                action.push(
+                    ['look_1', '1'],
+                    ['look_2', '2'],
+                    ['look_3', '3'],
+                    ['look_4', '4'],
+                    ['look_5', '5'],
+                );
+
+                areaAction = '';
                 break;
             default:
                 action.push(
@@ -99,7 +126,7 @@ export const Actions: Component<ActionsProps> = (props) => {
                 break;
         }
 
-        switch (props.data.area) {
+        switch (areaAction) {
             case 'discard':
                 action.push(
                     ['look', 'Look'],
@@ -145,7 +172,7 @@ export const Actions: Component<ActionsProps> = (props) => {
     const onClickAction = (e: MouseEvent, action: string) => {
         let subText = '';
         const select = selected();
-        if (action.startsWith('moveto')) {
+        if (action.startsWith('moveto') || ['look', 'discard', 'draw', 'heal', 'damage'].includes(action)) {
             setSelected(action);
         }
         if (select.startsWith('moveto')) {
@@ -157,15 +184,29 @@ export const Actions: Component<ActionsProps> = (props) => {
         props.sendEvent(action + subText);
     }
 
+    const onClickButton = (action: string) => {
+        const value = (document.getElementById('value') as HTMLInputElement).value;
+        const subText = '_' + value;
+        setSelected('')
+
+        props.sendEvent(action, value);
+    }
+
     return (
         <div ref={element} class="action-list" classList={{visible: !!action().length}}>
           {/* <ul class="action-list"> */}
           <ul>
-            <For each={action()}>{(action) =>
-              <li onClick={(e) => onClickAction(e, action[0])}>
-                  {action[1]}
-              </li>
-            }</For>
+            <Show when={!['look', 'discard', 'draw', 'heal', 'damage'].includes(props.data.type.toLowerCase())}>
+                <For each={action()}>{(action) =>
+                <li onClick={(e) => onClickAction(e, action[0])}>
+                    {action[1]}
+                </li>
+                }</For>
+            </Show>
+            <Show when={['look', 'discard', 'draw', 'heal', 'damage'].includes(props.data.type.toLowerCase())}>
+                <input id="value" />
+                <button type='button' onClick={(e) => onClickButton(props.data.type.toLowerCase())}>{props.data.type.toLowerCase()}</button>
+            </Show>
           </ul>
         </div>
     )

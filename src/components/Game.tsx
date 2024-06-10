@@ -157,7 +157,7 @@ export const Game: Component = (props) => {
         setActionsData(e);
     }
 
-    const sendEvent = (e: string) => {
+    const sendEvent = (e: string, value?: any) => {
         const actionData = actionsData() as ActionsData;
         const card = actionsData()?.card as Card;
         console.log(actionsData());
@@ -174,11 +174,15 @@ export const Game: Component = (props) => {
             cardPushNewPosition(card, split[2], split[1], actionData.area);
             setActionsData(null);
             // TODO
-        } else if (e === 'draw') {
+        } else if (['draw', 'look', 'discard', 'heal', 'damage'].includes(e) && !value) {
             setActionsData({
                 ...actionData,
-                type: 'draw',
+                type: e,
             });
+        } else if (['draw', 'look', 'discard', 'heal', 'damage'].includes(e)) {
+            // const split = e.split('_');
+            sendXAction(e, parseInt(value), card);
+            setActionsData(null);
         } else {
             setActionsData(null);
         }
@@ -255,8 +259,18 @@ export const Game: Component = (props) => {
             playerUuid: myuuid,
         };
         sendWS('moveCard', {move});
-        return;
     }
+
+    const sendXAction = (action: string, count: number, card: Card): void => {
+        const data: any = {
+            value: count,
+            playerUuid: myuuid,
+            card: card
+        };
+        console.log('se', data)
+        sendWS(action, {action: data});
+        return;
+    };
 
 
     return (
