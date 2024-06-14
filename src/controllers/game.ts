@@ -1,4 +1,4 @@
-import { hiddenCard, type Card } from "../helpers/card";
+import { hiddenCard, initCard, type Card } from "../helpers/card";
 import { draw } from "./deck";
 import { sendWS } from "./websocket";
 import { sorCard } from '../data/sor';
@@ -232,8 +232,8 @@ export const prepareDeckCard = (id: string, owner: string, index = 0) => {
   } else {
     tempCard = sorCard[parseInt(number) - 1];
   }
-   
-  let card = {id: uuidv4(), owner, side: owner, ...tempCard} as Card;
+  let card = initCard({id: uuidv4(), owner, side: owner, ...tempCard})
+
   return card;
 };
 
@@ -423,14 +423,20 @@ export const lookCard = (gameId: string, action: any) => {
   console.log(gameId, action)
 };
 export const discardCard = (gameId: string, action: any) => {
+  console.log(gameId, action)
 };
 
-
 export const healCard = (gameId: string, action: any) => {
+  console.log(gameId, action)
 };
 
 export const damageCard = (gameId: string, action: any) => {
+  console.log(gameId, action)
 };
+
+export const addUpgrade = () => {}
+
+export const removeUpgrade = () => {}
 
 
 

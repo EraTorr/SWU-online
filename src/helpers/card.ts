@@ -24,10 +24,12 @@ export type Card = {
     keywords?: Array<string>;
     owner: string;
     side: string;
+    shield: number;
+    experience: number;
 };
 
 export const hiddenCard = (cardUuid:string, ownerUuid: string, type: string, exhaust = false): Card => {
-    return {
+    return initCard({
         id: cardUuid,
         cost: 0,
         set: 'no',
@@ -40,5 +42,17 @@ export const hiddenCard = (cardUuid:string, ownerUuid: string, type: string, exh
         owner: ownerUuid,
         side: ownerUuid,
         exhaust
+    });
+}
+
+export const initCard = (data: any): Card => {
+    return {
+        shield: 0,
+        experience: 0,
+        modifiedCost: data.cost ?? 0,
+        modifiedPower: data.power ?? 0,
+        modifiedHp: data.hp ?? 0,
+        exhaust: false,
+        ...data
     }
 }

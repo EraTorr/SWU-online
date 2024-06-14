@@ -16,7 +16,7 @@ interface GameCardProps {
   playerView?: number;
   openActions: (data: any) => void;
   area: string;
-  pushNewPostion: (card: Card, side: string, area: string, fromArea: string) => void;
+  pushNewPosition: (card: Card, side: string, area: string, fromArea: string) => void;
 }
 
 export const GameCard: Component<GameCardProps> = (props) => {
@@ -72,7 +72,7 @@ export const GameCard: Component<GameCardProps> = (props) => {
         setFollowing(false);
         element.classList.remove("selected");
         document.removeEventListener("mousemove", handleMouseMove);
-        props.pushNewPostion(props.cardData, dataPush.side, dataPush.area, props.area);
+        props.pushNewPosition(props.cardData, dataPush.side, dataPush.area, props.area);
         setLeft(0);
         setTop(0);
       }

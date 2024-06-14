@@ -143,6 +143,7 @@ export const Actions: Component<ActionsProps> = (props) => {
                     ['action', 'Action'],
                     ['attack', 'Attack'],
                     ['changeStats', 'Change Stats'],
+                    ['damage', 'Damage X'],
                 );
                 break;
             case 'ground':
@@ -150,6 +151,7 @@ export const Actions: Component<ActionsProps> = (props) => {
                     ['action', 'Action'],
                     ['attack', 'Attack'],
                     ['changeStats', 'Change Stats'],
+                    ['damage', 'Damage X'],
                 );
                 break;
             case 'resource':

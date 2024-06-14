@@ -14,7 +14,7 @@ interface OpponentHiddenCardProps {
   owner?: number;
   playerView?: number;
   openActions: (data: any) => void;
-  pushNewPostion: (card: Card, side: string, area: string, fromArea: string) => void;
+  pushNewPosition: (card: Card, side: string, area: string, fromArea: string) => void;
   area: string;
   count?: number;
 }
@@ -31,7 +31,7 @@ export const OpponentHiddenCard: Component<OpponentHiddenCardProps> = (props) =>
           initPositionY={props.initPositionY}
           openActions={props.openActions}
           area={props.area}
-          pushNewPostion={props.pushNewPostion}
+          pushNewPosition={props.pushNewPosition}
       ></GameCard>
       <Show when={props.count}>
         <span classList={{exhausted: !!props.cardData.exhaust}}>{props.count}</span>

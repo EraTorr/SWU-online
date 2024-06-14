@@ -5,14 +5,15 @@ import type { Card } from "../helpers/card";
 
 interface DiscardPileProps {
     cardList?: Array<Card>
-    openActions?: (data: any) => void;
+    showDiscardPile?: (data: any) => void;
+    side: string;
 }
 
 export const DiscardPile: Component<DiscardPileProps> = (props) => {
     const merged = mergeProps(
         {
           cardList: [] as Array<Card>,
-          openActions: (e: any) => console.log(e),
+          showDiscardPile: (e: any) => console.log(e),
         },
         props,
       );
@@ -20,7 +21,7 @@ export const DiscardPile: Component<DiscardPileProps> = (props) => {
     const clickHandle = (event: any) => {
         stopEvent(event);
 
-        merged.openActions(merged.cardList.map(c => c.id));
+        merged.showDiscardPile(props.side);
       };
 
     return (

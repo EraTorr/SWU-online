@@ -1,4 +1,4 @@
-import type { Component } from "solid-js";
+import type { Component, JSXElement } from "solid-js";
 import { mergeProps, createSignal, onMount, Show, For } from "solid-js";
 import {GameCard} from '../components/GameCard.tsx';
 
@@ -10,6 +10,7 @@ import { Deck } from "./Deck.tsx";
 import { OpponentHiddenCard } from "./OpponentHiddenCard.tsx";
 import { DiscardPile } from "./DiscardPile.tsx";
 import type { MoveCardType } from "../controllers/game.ts";
+import { CentralDisplay } from "./CentralDisplay.tsx";
 
 export const Game: Component = (props) => {
 
@@ -44,6 +45,7 @@ export const Game: Component = (props) => {
     const [spaceCards, setSpaceCards] = createSignal<Array<Card>>([]);
     const [opponentGroundCards, setOpponentGroundCards] = createSignal<Array<Card>>([]);
     const [opponentSpaceCards, setOpponentSpaceCards] = createSignal<Array<Card>>([]);
+    const [centralDisplayChildren, setCentralDisplayChildren] = createSignal<JSXElement>(null);
 
     const updateData = (data: any) => {
         console.log(data)
@@ -201,6 +203,28 @@ export const Game: Component = (props) => {
             case 'updateData':
                 updateData(data)
                 break;
+            case 'show':
+                show(data);
+                break;
+        }
+    }
+
+    const show = (data: any) => {
+        if (data.type === 'cards') {
+            let display = <>
+                <For each={data.cards}>{(card, index) => {
+                    return (<GameCard
+                        name={card.id}
+                        cardData={card}
+                        pathFront={"SOR/" + card.number}
+                        openActions={openActions}
+                        area="resource"
+                        pushNewPosition={cardPushNewPosition}
+                    ></GameCard>)
+                }}</For>
+            </>
+            setCentralDisplayChildren(display);
+
         }
     }
 
@@ -265,13 +289,49 @@ export const Game: Component = (props) => {
         const data: any = {
             value: count,
             playerUuid: myuuid,
-            card: card
+            card: card,
+            sideUuid: myuuid
         };
         console.log('se', data)
         sendWS(action, {action: data});
         return;
     };
 
+    const showDiscardPile = (side: string): void => {
+        if (side === 'player') {
+            setCentralDisplayChildren(
+                <For each={discardPileCards()}>{(card, index) => {
+                    return (<GameCard
+                        name={card.id}
+                        cardData={card}
+                        pathFront={card.number === '000' ? "card_back" : "SOR/" + card.number}
+                        pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
+                        openActions={openActions}
+                        area="hand"
+                        pushNewPosition={cardPushNewPosition}
+                    ></GameCard>)
+                }}</For>
+            )
+        } else {
+            setCentralDisplayChildren(
+                <For each={opponentDiscardPileCards()}>{(card, index) => {
+                    return (<GameCard
+                        name={card.id}
+                        cardData={card}
+                        pathFront={card.number === '000' ? "card_back" : "SOR/" + card.number}
+                        pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
+                        openActions={openActions}
+                        area="hand"
+                        pushNewPosition={cardPushNewPosition}
+                    ></GameCard>)
+                }}</For>
+            )
+        }
+    };
+
+    const hideCentralDisplay = (): void => {
+        setCentralDisplayChildren(null);
+    }
 
     return (
         <div ref={element} class="game">
@@ -285,7 +345,7 @@ export const Game: Component = (props) => {
                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                             openActions={openActions}
                             area="hand"
-                            pushNewPostion={cardPushNewPosition}
+                            pushNewPosition={cardPushNewPosition}
                         ></GameCard>)
                     }}</For>
                 </div>
@@ -300,7 +360,7 @@ export const Game: Component = (props) => {
                                     pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                     openActions={openActions}
                                     area="resource"
-                                    pushNewPostion={cardPushNewPosition}
+                                    pushNewPosition={cardPushNewPosition}
                                 ></GameCard>)
                             }}</For>
                         </div>
@@ -308,11 +368,14 @@ export const Game: Component = (props) => {
                             <Deck
                                 left={opponentDeckCount()}
                                 openActions={openActions}
+                                side='opponent'
                             ></Deck>
                         </div>
                         <div class="discard flex" data-action="top-discard">
                             <DiscardPile
                                 cardList={opponentDiscardPileCards()}
+                                showDiscardPile={showDiscardPile}
+                                side='opponent'
                             ></DiscardPile>
                         </div>
                     </div>
@@ -326,7 +389,7 @@ export const Game: Component = (props) => {
                                     pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                     openActions={openActions}
                                     area="ground"
-                                    pushNewPostion={cardPushNewPosition}
+                                    pushNewPosition={cardPushNewPosition}
                                 ></GameCard>)
                             }}</For>
                         </div>
@@ -342,7 +405,7 @@ export const Game: Component = (props) => {
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                             openActions={openActions}
                                             area="leader"
-                                            pushNewPostion={cardPushNewPosition}
+                                            pushNewPosition={cardPushNewPosition}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
@@ -358,7 +421,7 @@ export const Game: Component = (props) => {
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                             openActions={openActions}
                                             area="base"
-                                            pushNewPostion={cardPushNewPosition}
+                                            pushNewPosition={cardPushNewPosition}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
@@ -373,7 +436,7 @@ export const Game: Component = (props) => {
                                     pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                     openActions={openActions}
                                     area="space"
-                                    pushNewPostion={cardPushNewPosition}
+                                    pushNewPosition={cardPushNewPosition}
                                 ></GameCard>)
                             }}</For>
                         </div>
@@ -392,7 +455,7 @@ export const Game: Component = (props) => {
                                     pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                     openActions={openActions}
                                     area="ground"
-                                    pushNewPostion={cardPushNewPosition}
+                                    pushNewPosition={cardPushNewPosition}
                                 ></GameCard>)
                             }}</For>
                         </div>
@@ -408,7 +471,7 @@ export const Game: Component = (props) => {
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                             openActions={openActions}
                                             area="base"
-                                            pushNewPostion={cardPushNewPosition}
+                                            pushNewPosition={cardPushNewPosition}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
@@ -424,7 +487,7 @@ export const Game: Component = (props) => {
                                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                             openActions={openActions}
                                             area="leader"
-                                            pushNewPostion={cardPushNewPosition}
+                                            pushNewPosition={cardPushNewPosition}
                                         ></GameCard>}
                                     }                                    
                                 </Show>
@@ -439,7 +502,7 @@ export const Game: Component = (props) => {
                                     pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                     openActions={openActions}
                                     area="space"
-                                    pushNewPostion={cardPushNewPosition}
+                                    pushNewPosition={cardPushNewPosition}
                                 ></GameCard>)
                             }}</For>
                         </div>
@@ -454,7 +517,7 @@ export const Game: Component = (props) => {
                                     pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                                     openActions={openActions}
                                     area="resource"
-                                    pushNewPostion={cardPushNewPosition}
+                                    pushNewPosition={cardPushNewPosition}
                                 ></GameCard>)
                             }}</For>
                         </div>
@@ -462,11 +525,14 @@ export const Game: Component = (props) => {
                             <Deck
                                 left={deckCount()}
                                 openActions={openActions}
+                                side='player'
                             ></Deck>
                         </div>
                         <div class="discard flex" data-action="bottom-discard">
                             <DiscardPile
                                 cardList={discardPileCards()}
+                                showDiscardPile={showDiscardPile}
+                                side='player'
                             >
                             </DiscardPile>
                         </div>
@@ -481,7 +547,7 @@ export const Game: Component = (props) => {
                             pathBack={card.type === 'Leader' ? "SOR/" + card.number + "-b" : undefined}
                             openActions={openActions}
                             area="hand"
-                            pushNewPostion={cardPushNewPosition}
+                            pushNewPosition={cardPushNewPosition}
                         ></GameCard>)
                     }}</For>
                 </div>
@@ -492,6 +558,14 @@ export const Game: Component = (props) => {
                     data={actionsData() as ActionsData}
                     sendEvent={sendEvent}
                 ></Actions>
+            </Show>
+
+            <Show when={centralDisplayChildren()}>
+                <CentralDisplay 
+                    hideCentralDisplay={hideCentralDisplay}
+                >
+                    {centralDisplayChildren()}
+                </CentralDisplay>
             </Show>
         </div>
     );
