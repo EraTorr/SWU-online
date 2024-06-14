@@ -2,7 +2,7 @@ export default class ChatController {
     private static instance: ChatController;
     private constructor() {}
 
-    public controllers = new Set();
+    public controllers: Set<ReadableStreamDefaultController<any>> = new Set();
   
     static getInstance(): ChatController {
       if (!ChatController.instance) {

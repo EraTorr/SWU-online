@@ -15,6 +15,8 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
+    import Alpine from 'alpinejs';
+
     document.addEventListener('alpine:init', () => {
         Alpine.data('pregame', () => ({
             showMatchMakingButton: false,
@@ -23,7 +25,7 @@ import Layout from '../layouts/Layout.astro';
                 this.showMatchMakingButton = !!localStorage.getItem('deck');
             },
             async saveDeckInLocalStorage() { 
-                const deck = document.getElementById('deck').value;
+                const deck = (document.getElementById('deck') as HTMLTextAreaElement).value;
                 const response = await fetch('/api/deck-validate', {
                     method: 'POST',
                     body: deck,

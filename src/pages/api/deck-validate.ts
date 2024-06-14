@@ -13,7 +13,7 @@ export const POST: APIRoute = async ({ request }) => {
             ) {
                 return new Response('Success', { status: 200 });
             }
-        } catch (e) {
+        } catch (e: any) {
             return new Response(e.message, { status: 400 });
         }
     }
